@@ -2,3 +2,7 @@
 /.svelte-kit
 pnpm-lock.yaml
 build/
+/nginx_access.log
+/nginx_error.log
+/nginx_main_error.log
+/nginx_access.log
