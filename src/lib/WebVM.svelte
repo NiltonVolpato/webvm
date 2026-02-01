@@ -1,11 +1,10 @@
 <script>
 	import { onMount, tick } from 'svelte';
-	import { get } from 'svelte/store';
-	import Nav from 'labs/packages/global-navbar/src/Nav.svelte';
-	import SideBar from '$lib/SideBar.svelte';
+	import StatusBar from '$lib/StatusBar.svelte';
+	import PanelModal from '$lib/PanelModal.svelte';
+	import { registerOscHandlers } from '$lib/oscHandlers.js';
 	import '$lib/global.css';
 	import '@xterm/xterm/css/xterm.css'
-	import '@fortawesome/fontawesome-free/css/all.min.css'
 	import { networkInterface, startLogin } from '$lib/network.js'
 	import { cpuActivity, diskActivity, cpuPercentage, diskLatency } from '$lib/activities.js'
 	import { introMessage, errorMessage, unexpectedErrorMessage } from '$lib/messages.js'
@@ -26,7 +25,22 @@
 	var blockCache = null;
 	var processCount = 0;
 	var curVT = 0;
-	var sideBarPinned = false;
+
+	// Panel state for modal
+	let activePanel = null;
+
+	function handleOpenPanel(panel) {
+		activePanel = panel;
+	}
+
+	function handleClosePanel() {
+		activePanel = null;
+		// Refocus terminal when closing panel
+		if (term) {
+			term.focus();
+		}
+	}
+
 	function writeData(buf, vt)
 	{
 		if(vt != 1)
@@ -189,11 +203,15 @@
 		const { Terminal } = await import('@xterm/xterm');
 		const { FitAddon } = await import('@xterm/addon-fit');
 		const { WebLinksAddon } = await import('@xterm/addon-web-links');
-		term = new Terminal({cursorBlink:true, convertEol:true, fontFamily:"monospace", fontWeight: 400, fontWeightBold: 700, fontSize: computeXTermFontSize()});
+		term = new Terminal({cursorBlink:true, convertEol:true, fontFamily:"'ZedMono NF', monospace", fontWeight: 400, fontWeightBold: 700, fontSize: computeXTermFontSize()});
 		fitAddon = new FitAddon();
 		term.loadAddon(fitAddon);
 		var linkAddon = new WebLinksAddon();
 		term.loadAddon(linkAddon);
+
+		// Register custom OSC handlers for panel control
+		registerOscHandlers(term, handleOpenPanel);
+
 		const consoleDiv = document.getElementById("console");
 		term.open(consoleDiv);
 		term.scrollToTop();
@@ -350,28 +368,28 @@
 	{
 		return await handleToolImpl(tool, term);
 	}
-	async function handleSidebarPinChange(event)
-	{
-		sideBarPinned = event.detail;
-		// Make sure the pinning state of reflected in the layout
-		await tick();
-		// Adjust the layout based on the new sidebar state
-		triggerResize();
-	}
 </script>
 
-<main class="relative w-full h-full">
-	<Nav />
-	<div class="absolute top-10 bottom-0 left-0 right-0">
-		<SideBar on:connect={handleConnect} on:reset={handleReset} handleTool={!configObj.needsDisplay || curVT == 7 ? handleTool : null} on:sidebarPinChange={handleSidebarPinChange}>
-			<slot></slot>
-		</SideBar>
+<main class="relative w-full h-full flex flex-col">
+	<!-- Terminal/Display area -->
+	<div class="flex-1 relative min-h-0">
 		{#if configObj.needsDisplay}
-			<div class="absolute top-0 bottom-0 {sideBarPinned ? 'left-[23.5rem]' : 'left-14'} right-0">
+			<div class="absolute inset-0">
 				<canvas class="w-full h-full cursor-none" id="display"></canvas>
 			</div>
 		{/if}
-		<div class="absolute top-0 bottom-0 {sideBarPinned ? 'left-[23.5rem]' : 'left-14'} right-0 p-1 scrollbar" id="console">
-		</div>
+		<div class="absolute inset-0 p-1 scrollbar" id="console"></div>
 	</div>
+
+	<!-- Status bar at bottom -->
+	<StatusBar onOpenPanel={handleOpenPanel} />
+
+	<!-- Modal for panels -->
+	<PanelModal
+		bind:activePanel
+		handleTool={!configObj.needsDisplay || curVT == 7 ? handleTool : null}
+		on:connect={handleConnect}
+		on:reset={handleReset}
+		on:close={handleClosePanel}
+	/>
 </main>

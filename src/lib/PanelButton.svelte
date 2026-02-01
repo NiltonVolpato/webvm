@@ -12,8 +12,8 @@
 
 <a href={clickUrl} target="_blank" on:click={clickHandler} on:contextmenu={rightClickHandler}><p class="flex flex-row items-center {bgColor} p-2 rounded-md shadow-md shadow-neutral-900 {(clickUrl != null || clickHandler != null) ? `${hoverColor} cursor-pointer` : ""}" title={buttonTooltip}>
 {#if buttonImage}
-<img src={buttonImage} class="inline w-8 h-8"/>
+<img src={buttonImage} alt="" class="inline w-8 h-8"/>
 {:else if buttonIcon}
-<i class="w-8 {buttonIcon} text-center" style="font-size: 2em;"></i>
+<span class="w-8 text-center text-2xl" style="font-family: 'ZedMono NF', monospace;">{buttonIcon}</span>
 {/if}
 <span class="ml-1">{buttonText}</span><slot></slot></p></a>

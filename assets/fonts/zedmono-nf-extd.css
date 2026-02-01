@@ -1,0 +1,28 @@
+@font-face {
+    font-family: "ZedMono NF";
+    src:    local("ZedMonoNerdFont-Extended"),
+            url("ZedMonoNerdFont-Extended.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+}
+@font-face {
+    font-family: "ZedMono NF";
+    src:    local("ZedMonoNerdFont-ExtendedBold"),
+            url("ZedMonoNerdFont-ExtendedBold.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 700;
+}
+@font-face {
+    font-family: "ZedMono NF";
+    src:    local("ZedMonoNerdFont-ExtendedBoldItalic"),
+            url("ZedMonoNerdFont-ExtendedBoldItalic.woff2") format("woff2");
+    font-style: italic;
+    font-weight: 700;
+}
+@font-face {
+    font-family: "ZedMono NF";
+    src:    local("ZedMonoNerdFont-ExtendedItalic"),
+            url("ZedMonoNerdFont-ExtendedItalic.woff2") format("woff2");
+    font-style: italic;
+    font-weight: 400;
+}

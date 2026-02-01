@@ -167,41 +167,42 @@ export function getMessageDetails(msg) {
 	let icon = "";
 	let messageContent = "";
 
+	// Nerd Font icons (Font Awesome variants - render better at small sizes)
 	if (isToolUse) {
 		let tool = msg.content[0].input;
 		if (tool.action === "screenshot") {
-			icon = "fa-desktop";
+			icon = "\u{f108}"; // nf-fa-desktop
 			messageContent = "Screenshot";
 		} else if (tool.action === "mouse_move") {
-			icon = "fa-mouse-pointer";
+			icon = "\u{f245}"; // nf-fa-arrow_pointer
 			var coords = tool.coordinate;
 			messageContent = `Mouse at (${coords[0]}, ${coords[1]})`;
 		} else if (tool.action === "left_click") {
-			icon = "fa-mouse-pointer";
+			icon = "\u{f245}"; // nf-fa-arrow_pointer
 			var coords = tool.coordinate;
 			messageContent = `Left click at (${coords[0]}, ${coords[1]})`;
 		} else if (tool.action === "right_click") {
-			icon = "fa-mouse-pointer";
+			icon = "\u{f245}"; // nf-fa-arrow_pointer
 			var coords = tool.coordinate;
 			messageContent = `Right click at (${coords[0]}, ${coords[1]})`;
 		} else if (tool.action === "wait") {
-			icon = "fa-hourglass-half";
+			icon = "\u{f254}"; // nf-fa-hourglass
 			messageContent = "Waiting";
 		} else if (tool.action === "key") {
-			icon = "fa-keyboard";
+			icon = "\u{f11c}"; // nf-fa-keyboard
 			messageContent = `Key press: ${tool.text}`;
 		} else if (tool.action === "type") {
-			icon = "fa-keyboard";
+			icon = "\u{f11c}"; // nf-fa-keyboard
 			messageContent = "Type text";
 		} else {
-			icon = "fa-screwdriver-wrench";
+			icon = "\u{f0ad}"; // nf-fa-wrench
 			messageContent = "Use the system";
 		}
 	} else if (isThinking) {
-		icon = "fa-brain";
+		icon = "\u{ee9c}"; // nf-fa-brain
 		messageContent = "Thinking...";
 	} else {
-		icon = msg.role === "user" ? "fa-user" : "fa-robot";
+		icon = msg.role === "user" ? "\u{f007}" : "\u{ee0d}"; // nf-fa-user / nf-fa-robot
 		messageContent = msg.content;
 	}
 
