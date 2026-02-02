@@ -39,9 +39,11 @@
 <svelte:window on:keydown={handleKeydown} />
 
 {#if activePanel}
+	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<div
 		class="absolute inset-0 flex items-center justify-center bg-black/60 z-50"
 		on:click={handleBackdropClick}
+		on:keydown={handleKeydown}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="panel-title"
