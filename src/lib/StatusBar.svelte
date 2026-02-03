@@ -9,6 +9,7 @@
     import { networkData } from "./network.js";
 
     export let onOpenPanel;
+    export let onDownload = null;
 
     const connectionState = networkData.connectionState;
 
@@ -18,7 +19,23 @@
         disk: "\u{f02ca}", // nf-md-harddisk
         wifi: "\u{f1eb}\u{00a0}", // nf-fa-wifi
         robot: "\u{ee0d}\u{00a0}", // nf-fa-robot (2-char width)
+        upload: "\u{f40a}\u{00a0}", // nf-oct-upload
     };
+
+    let fileInput;
+
+    function handleDownloadClick() {
+        fileInput?.click();
+    }
+
+    async function handleFileSelect(event) {
+        const file = event.target.files?.[0];
+        if (file && onDownload) {
+            await onDownload(file);
+        }
+        // Reset input so same file can be selected again
+        event.target.value = "";
+    }
 </script>
 
 <div
@@ -94,4 +111,26 @@
             <span>AI Active</span>
         {/if}
     </button>
+
+    {#if onDownload}
+        <span class="text-neutral-600">|</span>
+
+        <!-- Download file into VM -->
+        <button
+            on:click={handleDownloadClick}
+            class="flex items-center gap-2 hover:text-white transition-colors"
+            title="Download file into VM"
+        >
+            <span
+                class="self-stretch min-w-[1lh] inline-flex items-center justify-center"
+                >{icons.upload}</span
+            >
+        </button>
+        <input
+            type="file"
+            bind:this={fileInput}
+            on:change={handleFileSelect}
+            class="hidden"
+        />
+    {/if}
 </div>

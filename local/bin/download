@@ -1,0 +1,32 @@
+#!/bin/bash
+# Download a file from the browser to the VM (triggers browser file picker)
+# Usage: download [destination]
+
+dest="${1:-.}"
+
+# Clean up any previous signal
+rm -f /data/.download_done 2>/dev/null
+
+# Trigger browser file picker via OSC
+printf '\e]7337;filepicker\a'
+
+# Wait for file to arrive
+echo "Waiting for file selection..."
+while [ ! -f /data/.download_done ]; do
+    sleep 0.2
+done
+
+# Read the filename from the signal file
+filename=$(cat /data/.download_done)
+rm -f /data/.download_done
+
+if [ -d "$dest" ]; then
+    cp "/data/$filename" "$dest/$filename"
+    echo "Saved to $dest/$filename"
+else
+    cp "/data/$filename" "$dest"
+    echo "Saved to $dest"
+fi
+
+# Clean up staging area
+rm -f "/data/$filename"

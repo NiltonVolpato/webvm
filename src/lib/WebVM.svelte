@@ -23,6 +23,8 @@
 	var fitAddon = null;
 	var cxReadFunc = null;
 	var blockCache = null;
+	var dataDevice = null;
+	var uploadDevice = null;
 	var processCount = 0;
 	var curVT = 0;
 
@@ -38,6 +40,29 @@
 		// Refocus terminal when closing panel
 		if (term) {
 			term.focus();
+		}
+	}
+
+	async function handleDownload(file) {
+		if (!dataDevice) return;
+		try {
+			const content = await file.arrayBuffer();
+			await dataDevice.writeFile("/" + file.name, new Uint8Array(content));
+			// Signal the download script (if running) that the file is ready
+			await dataDevice.writeFile("/.download_done", file.name);
+			// Notify user in terminal
+			if (cxReadFunc) {
+				const msg = `\r\n\x1b[32mDownloaded:\x1b[0m ${file.name} → /data/${file.name}\r\n`;
+				const encoder = new TextEncoder();
+				cxReadFunc(encoder.encode(msg));
+			}
+		} catch (e) {
+			console.error('Download failed:', e);
+			if (cxReadFunc) {
+				const msg = `\r\n\x1b[31mDownload failed:\x1b[0m ${e.message}\r\n`;
+				const encoder = new TextEncoder();
+				cxReadFunc(encoder.encode(msg));
+			}
 		}
 	}
 
@@ -209,8 +234,12 @@
 		var linkAddon = new WebLinksAddon();
 		term.loadAddon(linkAddon);
 
-		// Register custom OSC handlers for panel control
-		registerOscHandlers(term, handleOpenPanel);
+		// Register custom OSC handlers for panel control and file operations
+		registerOscHandlers(term, handleOpenPanel, {
+			cxGetter: () => cx,
+			uploadDeviceGetter: () => uploadDevice,
+			dataDeviceGetter: () => dataDevice,
+		});
 
 		const consoleDiv = document.getElementById("console");
 		term.open(consoleDiv);
@@ -302,7 +331,8 @@
 		var overlayDevice = await CheerpX.OverlayDevice.create(blockDevice, blockCache);
 		var webDevice = await CheerpX.WebDevice.create("");
 		var documentsDevice = await CheerpX.WebDevice.create("documents");
-		var dataDevice = await CheerpX.DataDevice.create();
+		dataDevice = await CheerpX.DataDevice.create();
+		uploadDevice = await CheerpX.IDBDevice.create("uploads");
 		var mountPoints = [
 			// The root filesystem, as an Ext2 image
 			{type:"ext2", dev:overlayDevice, path:"/"},
@@ -310,6 +340,8 @@
 			{type:"dir", dev:webDevice, path:"/web"},
 			// Access to read-only data coming from JavaScript
 			{type:"dir", dev:dataDevice, path:"/data"},
+			// IDBDevice for file uploads from VM to browser (readable from JS)
+			{type:"dir", dev:uploadDevice, path:"/uploads"},
 			// Automatically created device files
 			{type:"devs", path:"/dev"},
 			// Pseudo-terminals
@@ -382,7 +414,7 @@
 	</div>
 
 	<!-- Status bar at bottom -->
-	<StatusBar onOpenPanel={handleOpenPanel} />
+	<StatusBar onOpenPanel={handleOpenPanel} onDownload={handleDownload} />
 
 	<!-- Modal for panels -->
 	<PanelModal

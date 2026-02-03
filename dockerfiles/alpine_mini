@@ -1,7 +1,12 @@
 FROM --platform=i386 i386/alpine:edge
-RUN apk add --no-cache bash shadow
+RUN apk add --no-cache bash shadow coreutils
 RUN useradd -m user && echo "user:password" | chpasswd
 WORKDIR /home/user/
+
+# Copy local scripts
+COPY local/bin/ /usr/local/bin/
+RUN chmod +x /usr/local/bin/*
+
 ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="vim" LANG="en_US.UTF-8" LC_ALL="C"
 RUN echo 'root:password' | chpasswd
 CMD [ "/bin/bash" ]

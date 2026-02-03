@@ -1,0 +1,25 @@
+#!/bin/bash
+# Upload a file from the VM to the browser (triggers browser download)
+# Usage: upload <file>
+
+if [ $# -eq 0 ]; then
+    echo "Usage: upload <file>"
+    echo "Uploads a file from the VM to your browser"
+    exit 1
+fi
+
+file="$1"
+
+if [ ! -f "$file" ]; then
+    echo "Error: File not found: $file"
+    exit 1
+fi
+
+filename=$(basename "$file")
+
+# Stage file for browser access
+mkdir -p /uploads 2>/dev/null
+cp "$file" "/uploads/$filename"
+
+# Trigger browser download via OSC
+printf '\e]7337;upload:%s\a' "$filename"

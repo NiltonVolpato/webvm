@@ -6,3 +6,5 @@ build/
 /nginx_error.log
 /nginx_main_error.log
 /nginx_access.log
+/nginx_user.pid
+/disk-images/
