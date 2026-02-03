@@ -9,7 +9,7 @@
     import { networkData } from "./network.js";
 
     export let onOpenPanel;
-    export let onDownload = null;
+    export let onUpload = null;
 
     const connectionState = networkData.connectionState;
 
@@ -24,14 +24,14 @@
 
     let fileInput;
 
-    function handleDownloadClick() {
+    function handleUploadClick() {
         fileInput?.click();
     }
 
     async function handleFileSelect(event) {
         const file = event.target.files?.[0];
-        if (file && onDownload) {
-            await onDownload(file);
+        if (file && onUpload) {
+            await onUpload(file);
         }
         // Reset input so same file can be selected again
         event.target.value = "";
@@ -112,14 +112,14 @@
         {/if}
     </button>
 
-    {#if onDownload}
+    {#if onUpload}
         <span class="text-neutral-600">|</span>
 
-        <!-- Download file into VM -->
+        <!-- Upload file to VM -->
         <button
-            on:click={handleDownloadClick}
+            on:click={handleUploadClick}
             class="flex items-center gap-2 hover:text-white transition-colors"
-            title="Download file into VM"
+            title="Upload file to VM"
         >
             <span
                 class="self-stretch min-w-[1lh] inline-flex items-center justify-center"

@@ -9,7 +9,7 @@ WebVM is a server-less virtual environment running fully client-side in HTML5/We
 - **Full Linux environment** - Run bash, Python, gcc, and more
 - **Networking via Tailscale** - Connect to your private network or the internet
 - **Claude AI integration** - Get AI assistance directly in the terminal
-- **File transfer** - Download files into the VM, upload files from the VM
+- **File transfer** - Upload files from browser, download files from VM
 - **OSC escape sequences** - Control the UI from within the VM
 
 ## Enable Networking

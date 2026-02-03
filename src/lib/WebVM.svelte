@@ -43,13 +43,13 @@
 		}
 	}
 
-	async function handleDownload(file) {
+	async function handleUpload(file) {
 		if (!dataDevice) return;
 		try {
 			const content = await file.arrayBuffer();
 			await dataDevice.writeFile("/" + file.name, new Uint8Array(content));
 			// Signal the download script (if running) that the file is ready
-			await dataDevice.writeFile("/.download_done", file.name);
+			await dataDevice.writeFile("/.upload_done", file.name);
 			// Notify user in terminal
 			if (cxReadFunc) {
 				const msg = `\r\n\x1b[32mDownloaded:\x1b[0m ${file.name} → /data/${file.name}\r\n`;
@@ -57,7 +57,7 @@
 				cxReadFunc(encoder.encode(msg));
 			}
 		} catch (e) {
-			console.error('Download failed:', e);
+			console.error('Upload failed:', e);
 			if (cxReadFunc) {
 				const msg = `\r\n\x1b[31mDownload failed:\x1b[0m ${e.message}\r\n`;
 				const encoder = new TextEncoder();
@@ -414,7 +414,7 @@
 	</div>
 
 	<!-- Status bar at bottom -->
-	<StatusBar onOpenPanel={handleOpenPanel} onDownload={handleDownload} />
+	<StatusBar onOpenPanel={handleOpenPanel} onUpload={handleUpload} />
 
 	<!-- Modal for panels -->
 	<PanelModal

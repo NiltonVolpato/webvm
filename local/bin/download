@@ -5,20 +5,20 @@
 dest="${1:-.}"
 
 # Clean up any previous signal
-rm -f /data/.download_done 2>/dev/null
+rm -f /data/.upload_done 2>/dev/null
 
 # Trigger browser file picker via OSC
 printf '\e]7337;filepicker\a'
 
 # Wait for file to arrive
 echo "Waiting for file selection..."
-while [ ! -f /data/.download_done ]; do
+while [ ! -f /data/.upload_done ]; do
     sleep 0.2
 done
 
 # Read the filename from the signal file
-filename=$(cat /data/.download_done)
-rm -f /data/.download_done
+filename=$(cat /data/.upload_done)
+rm -f /data/.upload_done
 
 if [ -d "$dest" ]; then
     cp "/data/$filename" "$dest/$filename"

@@ -22,4 +22,4 @@ mkdir -p /uploads 2>/dev/null
 cp "$file" "/uploads/$filename"
 
 # Trigger browser download via OSC
-printf '\e]7337;upload:%s\a' "$filename"
+printf '\e]7337;download:%s\a' "$filename"
