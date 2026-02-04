@@ -107,7 +107,10 @@ jobs:
       - name: Generate the image_name.
         id: image_name_gen
         run: |
-          echo "IMAGE_NAME=$(basename ${{ github.event.inputs.DOCKERFILE_PATH }})_$(date +%Y%m%d)_${{ github.run_id }}.ext2" >> $GITHUB_ENV
+          IMAGE_PREFIX="$(basename ${{ github.event.inputs.DOCKERFILE_PATH }})_$(date +%Y%m%d)"
+          IMAGE_NAME="${IMAGE_PREFIX}_${{ github.run_id }}.ext2"
+          echo "IMAGE_PREFIX=$IMAGE_PREFIX" >> $GITHUB_ENV
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
 
       # Create directory to host the image from.
       - run: sudo mkdir -p $DEPLOY_DIR
