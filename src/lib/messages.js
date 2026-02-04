@@ -9,7 +9,12 @@ function l(str) {
 function e(str) {
   return `${color}${str}${normal}`;
 }
-export const introMessage = ["Welcome back, Nilton"];
+export const introMessage = [
+  "",
+  "  Welcome back, Nilton",
+  "  ...you're Nilton, right?",
+  "",
+];
 export const errorMessage = [
   e("Terminal failed to start"),
   "",

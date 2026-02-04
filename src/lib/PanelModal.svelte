@@ -4,9 +4,11 @@
 	import AnthropicTab from './AnthropicTab.svelte';
 	import CpuTab from './CpuTab.svelte';
 	import DiskTab from './DiskTab.svelte';
+	import UploadTab from './UploadTab.svelte';
 
-	export let activePanel = null; // 'network' | 'claude' | 'cpu' | 'disk' | null
+	export let activePanel = null; // 'network' | 'claude' | 'cpu' | 'disk' | 'upload' | null
 	export let handleTool = null;
+	export let onUpload = null;
 
 	const dispatch = createEventDispatcher();
 
@@ -30,7 +32,8 @@
 		network: 'Networking',
 		claude: 'Claude AI',
 		cpu: 'CPU Activity',
-		disk: 'Disk'
+		disk: 'Disk',
+		upload: 'Upload File'
 	};
 
 	const closeIcon = '\u{f00d}'; // nf-fa-close
@@ -73,6 +76,8 @@
 					<CpuTab />
 				{:else if activePanel === 'disk'}
 					<DiskTab on:reset />
+				{:else if activePanel === 'upload'}
+					<UploadTab {onUpload} />
 				{/if}
 			</div>
 		</div>

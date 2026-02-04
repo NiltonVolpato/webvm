@@ -9,7 +9,6 @@
     import { networkData } from "./network.js";
 
     export let onOpenPanel;
-    export let onUpload = null;
 
     const connectionState = networkData.connectionState;
 
@@ -22,20 +21,6 @@
         upload: "\u{f40a}\u{00a0}", // nf-oct-upload
     };
 
-    let fileInput;
-
-    function handleUploadClick() {
-        fileInput?.click();
-    }
-
-    async function handleFileSelect(event) {
-        const file = event.target.files?.[0];
-        if (file && onUpload) {
-            await onUpload(file);
-        }
-        // Reset input so same file can be selected again
-        event.target.value = "";
-    }
 </script>
 
 <div
@@ -112,25 +97,17 @@
         {/if}
     </button>
 
-    {#if onUpload}
-        <span class="text-neutral-600">|</span>
+    <span class="text-neutral-600">|</span>
 
-        <!-- Upload file to VM -->
-        <button
-            on:click={handleUploadClick}
-            class="flex items-center gap-2 hover:text-white transition-colors"
-            title="Upload file to VM"
+    <!-- Upload file to VM -->
+    <button
+        on:click={() => onOpenPanel('upload')}
+        class="flex items-center gap-2 hover:text-white transition-colors"
+        title="Upload file to VM"
+    >
+        <span
+            class="self-stretch min-w-[1lh] inline-flex items-center justify-center"
+            >{icons.upload}</span
         >
-            <span
-                class="self-stretch min-w-[1lh] inline-flex items-center justify-center"
-                >{icons.upload}</span
-            >
-        </button>
-        <input
-            type="file"
-            bind:this={fileInput}
-            on:change={handleFileSelect}
-            class="hidden"
-        />
-    {/if}
+    </button>
 </div>

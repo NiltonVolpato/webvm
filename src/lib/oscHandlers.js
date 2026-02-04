@@ -1,10 +1,10 @@
 // OSC escape sequence handlers for WebVM
 // Allows triggering UI panels and file operations from within the VM
-// Usage: printf '\e]7337;open:network\a'
-//        printf '\e]7337;filepicker\a'       (open browser file picker → /data)
-//        printf '\e]7337;download:filename\a' (trigger browser download from /uploads)
+// Usage: printf '\e]7337;open:network\a'       (open a UI panel)
+//        printf '\e]7337;filepicker\a'          (open browser file picker → /data)
+//        printf '\e]7337;download:filename\a'   (trigger browser download from /uploads)
 
-export function registerOscHandlers(term, panelCallback, { cxGetter, uploadDeviceGetter, dataDeviceGetter }) {
+export function registerOscHandlers(term, panelCallback, { uploadDeviceGetter }) {
 	// OSC 7337 - WebVM custom escape sequences
 	// Format: \e]7337;command:arg\a
 	term.parser.registerOscHandler(7337, async (data) => {
@@ -14,7 +14,7 @@ export function registerOscHandlers(term, panelCallback, { cxGetter, uploadDevic
 
 		switch (command) {
 			case 'open':
-				if (['network', 'claude', 'cpu', 'disk'].includes(arg)) {
+				if (['network', 'claude', 'cpu', 'disk', 'upload'].includes(arg)) {
 					panelCallback(arg);
 					return true;
 				}
@@ -23,30 +23,8 @@ export function registerOscHandlers(term, panelCallback, { cxGetter, uploadDevic
 				panelCallback(null);
 				return true;
 			case 'filepicker':
-				// Open browser file picker, write file to /data, signal completion
-				if (dataDeviceGetter) {
-					try {
-						const dataDevice = dataDeviceGetter();
-						if (!dataDevice) return false;
-
-						const input = document.createElement('input');
-						input.type = 'file';
-						input.onchange = async (e) => {
-							const file = e.target.files?.[0];
-							if (!file) return;
-							const content = await file.arrayBuffer();
-							await dataDevice.writeFile('/' + file.name, new Uint8Array(content));
-							// Signal the script that the file is ready
-							await dataDevice.writeFile('/.upload_done', file.name);
-						};
-						input.click();
-						return true;
-					} catch (e) {
-						console.error('File picker failed:', e);
-						return false;
-					}
-				}
-				return false;
+				panelCallback('upload');
+				return true;
 			case 'download':
 				// Trigger browser download of a file staged in /uploads
 				if (arg && uploadDeviceGetter) {

@@ -43,27 +43,13 @@
 		}
 	}
 
-	async function handleUpload(file) {
-		if (!dataDevice) return;
-		try {
-			const content = await file.arrayBuffer();
-			await dataDevice.writeFile("/" + file.name, new Uint8Array(content));
-			// Signal the download script (if running) that the file is ready
-			await dataDevice.writeFile("/.upload_done", file.name);
-			// Notify user in terminal
-			if (cxReadFunc) {
-				const msg = `\r\n\x1b[32mDownloaded:\x1b[0m ${file.name} → /data/${file.name}\r\n`;
-				const encoder = new TextEncoder();
-				cxReadFunc(encoder.encode(msg));
-			}
-		} catch (e) {
-			console.error('Upload failed:', e);
-			if (cxReadFunc) {
-				const msg = `\r\n\x1b[31mDownload failed:\x1b[0m ${e.message}\r\n`;
-				const encoder = new TextEncoder();
-				cxReadFunc(encoder.encode(msg));
-			}
-		}
+	async function handleUpload(name, content) {
+		if (!dataDevice || !cx) return;
+		const rand = Math.random().toString(36).substring(2, 6);
+		const tempName = "/." + name + "." + rand;
+		const finalName = "/" + name;
+		await dataDevice.writeFile(tempName, new Uint8Array(content));
+		await cx.run("/bin/mv", ["/data" + tempName, "/data" + finalName]);
 	}
 
 	function writeData(buf, vt)
@@ -236,9 +222,7 @@
 
 		// Register custom OSC handlers for panel control and file operations
 		registerOscHandlers(term, handleOpenPanel, {
-			cxGetter: () => cx,
 			uploadDeviceGetter: () => uploadDevice,
-			dataDeviceGetter: () => dataDevice,
 		});
 
 		const consoleDiv = document.getElementById("console");
@@ -414,12 +398,13 @@
 	</div>
 
 	<!-- Status bar at bottom -->
-	<StatusBar onOpenPanel={handleOpenPanel} onUpload={handleUpload} />
+	<StatusBar onOpenPanel={handleOpenPanel} />
 
 	<!-- Modal for panels -->
 	<PanelModal
 		bind:activePanel
 		handleTool={!configObj.needsDisplay || curVT == 7 ? handleTool : null}
+		onUpload={handleUpload}
 		on:connect={handleConnect}
 		on:reset={handleReset}
 		on:close={handleClosePanel}
