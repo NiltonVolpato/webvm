@@ -23,7 +23,7 @@ export function registerOscHandlers(term, panelCallback, { uploadDeviceGetter })
 				panelCallback(null);
 				return true;
 			case 'filepicker':
-				panelCallback('upload');
+				panelCallback('upload', { sessionId: arg || null });
 				return true;
 			case 'download':
 				// Trigger browser download of a file staged in /uploads

@@ -113,6 +113,9 @@
         buttonText="{selectedFile.name} uploaded"
         bgColor="bg-green-900"
     />
+    <p class="text-sm text-gray-300 mt-2">
+        File available at <code class="text-amber-400">/data/{selectedFile.name}</code>
+    </p>
     <div class="mt-3">
         <PanelButton
             buttonIcon={retryIcon}

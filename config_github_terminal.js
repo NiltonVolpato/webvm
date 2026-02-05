@@ -21,3 +21,5 @@ export const opts = {
 	// Group id
 	gid: 1000
 };
+// Web device base path (relative to the web server root)
+export const webDevicePath = "";

@@ -30,13 +30,22 @@
 
 	// Panel state for modal
 	let activePanel = null;
+	let uploadSessionId = null;
 
-	function handleOpenPanel(panel) {
+	function handleOpenPanel(panel, data) {
+		if (panel === 'upload') {
+			uploadSessionId = data?.sessionId || null;
+		}
 		activePanel = panel;
 	}
 
 	function handleClosePanel() {
+		// Notify script of cancellation if it's waiting for an upload
+		if (uploadSessionId && dataDevice) {
+			dataDevice.writeFile("/" + uploadSessionId + ".cancel", "");
+		}
 		activePanel = null;
+		uploadSessionId = null;
 		// Refocus terminal when closing panel
 		if (term) {
 			term.focus();
@@ -44,12 +53,15 @@
 	}
 
 	async function handleUpload(name, content) {
-		if (!dataDevice || !cx) return;
-		const rand = Math.random().toString(36).substring(2, 6);
-		const tempName = "/." + name + "." + rand;
-		const finalName = "/" + name;
-		await dataDevice.writeFile(tempName, new Uint8Array(content));
-		await cx.run("/bin/mv", ["/data" + tempName, "/data" + finalName]);
+		if (!dataDevice) return;
+		if (uploadSessionId) {
+			// Script-initiated: session-prefixed name + done signal
+			await dataDevice.writeFile("/" + uploadSessionId + "." + name, new Uint8Array(content));
+			await dataDevice.writeFile("/" + uploadSessionId + ".done", "");
+		} else {
+			// StatusBar-initiated: write directly
+			await dataDevice.writeFile("/" + name, new Uint8Array(content));
+		}
 	}
 
 	function writeData(buf, vt)
@@ -313,8 +325,7 @@
 		}
 		blockCache = await CheerpX.IDBDevice.create(cacheId);
 		var overlayDevice = await CheerpX.OverlayDevice.create(blockDevice, blockCache);
-		var webDevice = await CheerpX.WebDevice.create("");
-		var documentsDevice = await CheerpX.WebDevice.create("documents");
+		var webDevice = await CheerpX.WebDevice.create(configObj.webDevicePath ?? "");
 		dataDevice = await CheerpX.DataDevice.create();
 		uploadDevice = await CheerpX.IDBDevice.create("uploads");
 		var mountPoints = [
@@ -333,9 +344,7 @@
 			// The Linux 'proc' filesystem which provides information about running processes
 			{type:"proc", path:"/proc"},
 			// The Linux 'sysfs' filesystem which is used to enumerate emulated devices
-			{type:"sys", path:"/sys"},
-			// Convenient access to sample documents in the user directory
-			{type:"dir", dev:documentsDevice, path:"/home/user/documents"}
+			{type:"sys", path:"/sys"}
 		];
 		try
 		{

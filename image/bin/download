@@ -1,0 +1,59 @@
+#!/bin/bash
+# Download a file from the browser to the VM (triggers browser file picker)
+# Usage: download [destination]
+
+make_id() {
+    local n=$0
+    local chars="abcdefgijklmnopqrstuvwxyz"
+    local str=""
+    for i in {1..4}; do
+        str+="${chars:RANDOM%${#chars}:1}"
+    done
+    echo "$str"
+}
+
+
+dest="${1:-.}"
+
+# Clean transient staging area
+rm -f /data/* /data/.* 2>/dev/null
+
+# Generate a random 4-char session ID
+rand=$(make_id)
+
+# Trigger browser file picker with session ID via OSC
+printf '\e]7337;filepicker:%s\a' "$rand"
+
+# Wait for done or cancel signal from the browser
+echo "Waiting for file selection..."
+while [ ! -f "/data/$rand.done" ] && [ ! -f "/data/$rand.cancel" ]; do
+    sleep 0.2
+done
+
+# Handle cancellation
+if [ -f "/data/$rand.cancel" ]; then
+    rm -f "/data/$rand.cancel"
+    echo "Cancelled."
+    exit 1
+fi
+
+# Clean up done signal
+rm -f "/data/$rand.done"
+
+# Find the uploaded file (named <session>.<originalname>)
+filepath=$(ls /data/$rand.* 2>/dev/null | head -1)
+if [ -z "$filepath" ]; then
+    echo "Error: no file found" >&2
+    exit 1
+fi
+
+# Strip the session prefix to recover the original filename
+filename="${filepath#/data/$rand.}"
+
+if [ -d "$dest" ]; then
+    mv "$filepath" "$dest/$filename"
+    echo "Saved to $dest/$filename"
+else
+    mv "$filepath" "$dest"
+    echo "Saved to $dest"
+fi
