@@ -1,28 +1,20 @@
 FROM --platform=i386 i386/alpine:edge
 
-# 1. Combine package install, user creation, and cleanup
-RUN apk add --no-cache bash coreutils mg && \
+RUN apk add --no-cache bash coreutils mg doas && \
     apk add --no-cache --virtual .build-deps shadow && \
-    addgroup user && \
-    adduser -G user -s /bin/bash -D user && \
+    addgroup -S user && \
+    adduser -G user -s /bin/bash -D -S user && \
     echo "user:password" | chpasswd && \
     echo "root:password" | chpasswd && \
+    echo "permit persist :user" > /etc/doas.d/doas.conf && \
     apk del .build-deps
 
 WORKDIR /home/user/
 
-# 2. Copy files (Copying directly to /home/user handles ownership if done right)
 COPY --chown=user:user image/home/ /home/user/
 COPY image/bin/ /usr/local/bin/
-RUN chmod +x /usr/local/bin/*
 
-ENV HOME="/home/user" \
-    TERM="xterm" \
-    USER="user" \
-    SHELL="/bin/bash" \
-    EDITOR="mg" \
-    LANG="en_US.UTF-8" \
-    LC_ALL="C"
+ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="mg" LANG="en_US.UTF-8" LC_ALL="C"
 
 USER user
 CMD [ "/bin/bash" ]

@@ -162,8 +162,8 @@ jobs:
       # However, it's important to note that despite being specified in the documentation, the '--archive' flag does not currently preserve uid/gid information when copying files from the container to the host machine.
       # Another compelling reason to use 'docker cp' is that it preserves resolv.conf.
       - name: Export and unpack container filesystem contents into mounted ext2 image.
-        run: | 
-          sudo docker cp -a ${CONTAINER_ID}:/ /mnt/
+        run: |
+          sudo docker export ${CONTAINER_ID} | sudo tar xf - -C /mnt/
           sudo umount /mnt/
       # Result is an ext2 image for webvm.
 
