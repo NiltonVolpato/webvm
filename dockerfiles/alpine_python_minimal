@@ -18,8 +18,7 @@ RUN apk add --no-cache python3 py3-pip py3-pillow && \
            /usr/lib/python3.12/turtle* \
            /usr/lib/python3.12/lib-dynload/_test* \
            /usr/lib/python3.12/lib-dynload/_tkinter* \
-           /root/.cache \
-    && find /usr/lib/python3.12 -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
+           /root/.cache
 
 FROM --platform=i386 i386/alpine:edge
 
@@ -47,7 +46,7 @@ WORKDIR /home/user/
 COPY --chown=user:user image/home/ /home/user/
 COPY image/bin/ /usr/local/bin/
 
-ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="micro" LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" PYTHONDONTWRITEBYTECODE=1
+ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="micro" LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8"
 
 USER user
 CMD [ "/bin/bash" ]

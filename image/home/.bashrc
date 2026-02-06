@@ -26,9 +26,6 @@ alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
 
-# Python
-export PYTHONDONTWRITEBYTECODE=1
-
 # Enable programmable completion
 if [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
