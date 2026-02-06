@@ -19,7 +19,6 @@ RUN apk add --no-cache python3 py3-pip py3-pillow && \
            /usr/lib/python3.12/lib-dynload/_test* \
            /usr/lib/python3.12/lib-dynload/_tkinter* \
            /root/.cache \
-    && find /usr/lib/python3.12 -name '*.pyc' -delete \
     && find /usr/lib/python3.12 -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
 
 FROM --platform=i386 i386/alpine:edge
@@ -27,7 +26,7 @@ FROM --platform=i386 i386/alpine:edge
 # Install runtime dependencies for Python + our tools
 RUN apk add --no-cache \
     bash zsh coreutils mg doas tmux micro \
-    libffi gdbm xz-libs libstdc++ sqlite-libs \
+    libffi gdbm xz-libs libstdc++ sqlite-libs expat \
     && apk add --no-cache --virtual .build-deps shadow \
     && addgroup -S user \
     && adduser -G user -s /bin/bash -D -S user \

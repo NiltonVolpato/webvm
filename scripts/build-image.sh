@@ -110,7 +110,7 @@ if docker run --rm "$IMAGE_NAME" which python3 >/dev/null 2>&1; then
     run_test "python3 json" "python3 -c 'import json; print(json.dumps({\"a\":1}))'" '{"a": 1}'
 
     # Test pip-installed CLI tools
-    run_test "ipython available" "which ipython" "/usr/bin/ipython"
+    run_test "ipython works" "ipython -c 'print(1+1)'" "2"
     run_test "cowsay works" "cowsay -t 'test'" "test"
     run_test "rich cli works" "python3 -m rich" "Rich"
     run_test "sympy isympy" "which isympy" "/usr/bin/isympy"
