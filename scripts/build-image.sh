@@ -103,11 +103,18 @@ run_test "coreutils works" "ls --version" "coreutils"
 run_test "user exists" "id user" "user"
 run_test "home directory" "ls -la /home/user" ".bashrc"
 
-# Python test (if python is installed)
+# Python tests (if python is installed)
 if docker run --rm "$IMAGE_NAME" which python3 >/dev/null 2>&1; then
     run_test "python3 works" "python3 -c 'print(1+1)'" "2"
     run_test "python3 utf-8" "python3 -c 'print(\"héllo\")'" "héllo"
     run_test "python3 json" "python3 -c 'import json; print(json.dumps({\"a\":1}))'" '{"a": 1}'
+
+    # Test pip-installed CLI tools
+    run_test "ipython available" "which ipython" "/usr/bin/ipython"
+    run_test "cowsay works" "cowsay -t 'test'" "test"
+    run_test "rich cli works" "python3 -m rich" "Rich"
+    run_test "sympy isympy" "which isympy" "/usr/bin/isympy"
+    run_test "tte available" "which tte" "/usr/bin/tte"
 fi
 
 echo ""

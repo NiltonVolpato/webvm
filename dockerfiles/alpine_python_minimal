@@ -2,27 +2,27 @@ FROM --platform=i386 i386/alpine:edge AS builder
 
 COPY image/python-deps.txt /tmp/requirements.txt
 
+# Install Python, pip packages, and collect new binaries
 RUN apk add --no-cache python3 py3-pip py3-pillow && \
+    ls /usr/bin > /tmp/bins_before.txt && \
     pip install --break-system-packages -r /tmp/requirements.txt && \
+    ls /usr/bin > /tmp/bins_after.txt && \
+    mkdir -p /tmp/pip_bins && \
+    comm -13 /tmp/bins_before.txt /tmp/bins_after.txt | while read bin; do \
+        cp /usr/bin/$bin /tmp/pip_bins/; \
+    done && \
     rm -rf /usr/lib/python3.12/ensurepip \
            /usr/lib/python3.12/test \
            /usr/lib/python3.12/idlelib \
            /usr/lib/python3.12/tkinter \
            /usr/lib/python3.12/turtle* \
            /usr/lib/python3.12/lib-dynload/_test* \
-           /usr/lib/python3.12/lib-dynload/unicodedata* \
            /usr/lib/python3.12/lib-dynload/_tkinter* \
            /root/.cache \
     && find /usr/lib/python3.12 -name '*.pyc' -delete \
     && find /usr/lib/python3.12 -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
 
 FROM --platform=i386 i386/alpine:edge
-
-# Copy stripped Python from builder
-COPY --from=builder /usr/lib/python3.12 /usr/lib/python3.12
-COPY --from=builder /usr/lib/libpython3.12.so.1.0 /usr/lib/libpython3.12.so.1.0
-COPY --from=builder /usr/bin/python3.12 /usr/bin/python3.12
-RUN ln -s python3.12 /usr/bin/python3 && ln -s python3 /usr/bin/python
 
 # Install runtime dependencies for Python + our tools
 RUN apk add --no-cache \
@@ -35,6 +35,13 @@ RUN apk add --no-cache \
     && echo "root:password" | chpasswd \
     && echo "permit persist :user" > /etc/doas.d/doas.conf \
     && apk del .build-deps
+
+# Copy stripped Python from builder
+COPY --from=builder /usr/lib/python3.12 /usr/lib/python3.12
+COPY --from=builder /usr/lib/libpython3.12.so.1.0 /usr/lib/libpython3.12.so.1.0
+COPY --from=builder /usr/bin/python3.12 /usr/bin/python3.12
+COPY --from=builder /tmp/pip_bins/ /usr/bin/
+RUN ln -s python3.12 /usr/bin/python3 && ln -s python3 /usr/bin/python
 
 WORKDIR /home/user/
 
