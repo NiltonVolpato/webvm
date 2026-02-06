@@ -17,9 +17,9 @@ on:
 
       IMAGE_SIZE:
         type: string
-        description: "Image size, 950M max (use 160M for python)"
+        description: "Image size, 950M max (use 250M for python)"
         required: true
-        default: "25M"
+        default: "30M"
 
       DEPLOY_TO_GITHUB_PAGES:
         type: boolean
@@ -127,7 +127,22 @@ jobs:
           git clone --depth 1 https://github.com/melbi-lang/melbi.git /tmp/melbi
           cd /tmp/melbi
           cargo build --package melbi-cli --target i686-unknown-linux-musl --release
+          strip target/i686-unknown-linux-musl/release/melbi-cli
           cp target/i686-unknown-linux-musl/release/melbi-cli $GITHUB_WORKSPACE/image/bin/melbi
+
+      - name: Build genact
+        run: |
+          cargo install genact --target i686-unknown-linux-musl --root /tmp/genact
+          strip /tmp/genact/bin/genact
+          cp /tmp/genact/bin/genact $GITHUB_WORKSPACE/image/bin/genact
+
+      - name: Build chess-tui
+        run: |
+          git clone --depth 1 https://github.com/thomas-mauran/chess-tui.git /tmp/chess-tui
+          cd /tmp/chess-tui
+          cargo build --release --target i686-unknown-linux-musl
+          strip target/i686-unknown-linux-musl/release/chess-tui
+          cp target/i686-unknown-linux-musl/release/chess-tui $GITHUB_WORKSPACE/image/bin/chess-tui
 
       # Build the i386 Dockerfile image.
       - run: docker build . --tag $TAG --file ${{ github.event.inputs.DOCKERFILE_PATH }} --platform=i386

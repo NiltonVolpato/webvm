@@ -1,6 +1,6 @@
 FROM --platform=i386 i386/alpine:edge
 
-RUN apk add --no-cache bash zsh coreutils mg doas tmux && \
+RUN apk add --no-cache bash coreutils mg doas micro && \
     apk add --no-cache --virtual .build-deps shadow && \
     addgroup -S user && \
     adduser -G user -s /bin/bash -D -S user && \

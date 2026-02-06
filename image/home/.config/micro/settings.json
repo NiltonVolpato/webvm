@@ -1,0 +1,5 @@
+{
+    "colorscheme": "dukedark-tc",
+    "statusformatl": " 󰷉 $(filename) $(modified)$(overwrite)  󰐃$(line):$(col)  $(percentage)%  $(status.paste)",
+    "statusformatr": "$(opt:fileformat)   $(opt:encoding)   $(opt:filetype) "
+}
