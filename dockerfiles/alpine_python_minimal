@@ -1,0 +1,47 @@
+FROM --platform=i386 i386/alpine:edge AS builder
+
+COPY image/python-deps.txt /tmp/requirements.txt
+
+RUN apk add --no-cache python3 py3-pip py3-pillow && \
+    pip install --break-system-packages -r /tmp/requirements.txt && \
+    rm -rf /usr/lib/python3.12/ensurepip \
+           /usr/lib/python3.12/test \
+           /usr/lib/python3.12/idlelib \
+           /usr/lib/python3.12/tkinter \
+           /usr/lib/python3.12/turtle* \
+           /usr/lib/python3.12/lib-dynload/_test* \
+           /usr/lib/python3.12/lib-dynload/unicodedata* \
+           /usr/lib/python3.12/lib-dynload/_tkinter* \
+           /root/.cache \
+    && find /usr/lib/python3.12 -name '*.pyc' -delete \
+    && find /usr/lib/python3.12 -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
+
+FROM --platform=i386 i386/alpine:edge
+
+# Copy stripped Python from builder
+COPY --from=builder /usr/lib/python3.12 /usr/lib/python3.12
+COPY --from=builder /usr/lib/libpython3.12.so.1.0 /usr/lib/libpython3.12.so.1.0
+COPY --from=builder /usr/bin/python3.12 /usr/bin/python3.12
+RUN ln -s python3.12 /usr/bin/python3 && ln -s python3 /usr/bin/python
+
+# Install runtime dependencies for Python + our tools
+RUN apk add --no-cache \
+    bash zsh coreutils mg doas tmux \
+    libffi gdbm xz-libs libstdc++ sqlite-libs \
+    && apk add --no-cache --virtual .build-deps shadow \
+    && addgroup -S user \
+    && adduser -G user -s /bin/bash -D -S user \
+    && echo "user:password" | chpasswd \
+    && echo "root:password" | chpasswd \
+    && echo "permit persist :user" > /etc/doas.d/doas.conf \
+    && apk del .build-deps
+
+WORKDIR /home/user/
+
+COPY --chown=user:user image/home/ /home/user/
+COPY image/bin/ /usr/local/bin/
+
+ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="mg" LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" PYTHONDONTWRITEBYTECODE=1
+
+USER user
+CMD [ "/bin/bash" ]

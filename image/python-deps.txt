@@ -1,0 +1,8 @@
+rich
+textual
+terminaltexteffects
+asciimatics
+cowsay
+art
+ipython
+sympy
