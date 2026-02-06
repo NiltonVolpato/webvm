@@ -136,14 +136,6 @@ jobs:
           strip /tmp/genact/bin/genact
           cp /tmp/genact/bin/genact $GITHUB_WORKSPACE/image/bin/genact
 
-      - name: Build chess-tui
-        run: |
-          git clone --depth 1 https://github.com/thomas-mauran/chess-tui.git /tmp/chess-tui
-          cd /tmp/chess-tui
-          cargo build --release --target i686-unknown-linux-musl
-          strip target/i686-unknown-linux-musl/release/chess-tui
-          cp target/i686-unknown-linux-musl/release/chess-tui $GITHUB_WORKSPACE/image/bin/chess-tui
-
       # Build the i386 Dockerfile image.
       - run: docker build . --tag $TAG --file ${{ github.event.inputs.DOCKERFILE_PATH }} --platform=i386
 
