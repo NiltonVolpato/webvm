@@ -26,14 +26,15 @@ RUN ln -s python3.12 /usr/bin/python3 && ln -s python3 /usr/bin/python
 
 # Install runtime dependencies for Python + our tools
 RUN apk add --no-cache \
-    bash zsh coreutils mg doas tmux \
+    bash zsh coreutils mg doas tmux micro \
     libffi gdbm xz-libs libstdc++ sqlite-libs \
-    && apk add --no-cache --virtual .build-deps shadow \
+    && apk add --no-cache --virtual .build-deps shadow upx \
     && addgroup -S user \
     && adduser -G user -s /bin/bash -D -S user \
     && echo "user:password" | chpasswd \
     && echo "root:password" | chpasswd \
     && echo "permit persist :user" > /etc/doas.d/doas.conf \
+    && upx --brute /bin/bash /bin/zsh /usr/bin/tmux /bin/coreutils /usr/bin/micro \
     && apk del .build-deps
 
 WORKDIR /home/user/
@@ -41,7 +42,7 @@ WORKDIR /home/user/
 COPY --chown=user:user image/home/ /home/user/
 COPY image/bin/ /usr/local/bin/
 
-ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="mg" LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" PYTHONDONTWRITEBYTECODE=1
+ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="micro" LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" PYTHONDONTWRITEBYTECODE=1
 
 USER user
 CMD [ "/bin/bash" ]
