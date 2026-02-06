@@ -12,14 +12,14 @@ export const cmd = CMD; // Default: "/bin/bash";
 export const args = ARGS; // Default: ["--login"];
 // Optional extra parameters
 export const opts = {
-	// Environment variables
-	env: ENV, // Default: ["HOME=/home/user", "TERM=xterm", "USER=user", "SHELL=/bin/bash", "EDITOR=vim", "LANG=en_US.UTF-8", "LC_ALL=C"],
-	// Current working directory
-	cwd: CWD, // Default: "/home/user",
-	// User id
-	uid: 1000,
-	// Group id
-	gid: 1000
+  // Environment variables
+  env: ENV, // Default: ["HOME=/home/user", "TERM=xterm", "USER=user", "SHELL=/bin/bash", "EDITOR=vim", "LANG=en_US.UTF-8", "LC_ALL=C"],
+  // Current working directory
+  cwd: CWD, // Default: "/home/user",
+  // User id
+  uid: 100,
+  // Group id
+  gid: 100,
 };
 // Web device base path (relative to the web server root)
 export const webDevicePath = "";

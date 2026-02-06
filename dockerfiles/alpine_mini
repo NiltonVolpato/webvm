@@ -1,6 +1,6 @@
 FROM --platform=i386 i386/alpine:edge
 
-RUN apk add --no-cache bash coreutils mg doas && \
+RUN apk add --no-cache bash zsh coreutils mg doas tmux && \
     apk add --no-cache --virtual .build-deps shadow && \
     addgroup -S user && \
     adduser -G user -s /bin/bash -D -S user && \
@@ -14,7 +14,7 @@ WORKDIR /home/user/
 COPY --chown=user:user image/home/ /home/user/
 COPY image/bin/ /usr/local/bin/
 
-ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="mg" LANG="en_US.UTF-8" LC_ALL="C"
+ENV HOME="/home/user" TERM="xterm" USER="user" SHELL="/bin/bash" EDITOR="mg" LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8"
 
 USER user
 CMD [ "/bin/bash" ]
