@@ -1,12 +1,8 @@
 # IPython configuration
 
-c = get_config()
+c = get_config()  # noqa: F821
 
-# Enable colors
 c.TerminalInteractiveShell.colors = 'Linux'
-
-# Enable syntax highlighting
-c.TerminalInteractiveShell.highlighting_style = 'monokai'
 
 # Auto-indent
 c.TerminalInteractiveShell.autoindent = True
