@@ -28,13 +28,12 @@ RUN ln -s python3.12 /usr/bin/python3 && ln -s python3 /usr/bin/python
 RUN apk add --no-cache \
     bash zsh coreutils mg doas tmux micro \
     libffi gdbm xz-libs libstdc++ sqlite-libs \
-    && apk add --no-cache --virtual .build-deps shadow upx \
+    && apk add --no-cache --virtual .build-deps shadow \
     && addgroup -S user \
     && adduser -G user -s /bin/bash -D -S user \
     && echo "user:password" | chpasswd \
     && echo "root:password" | chpasswd \
     && echo "permit persist :user" > /etc/doas.d/doas.conf \
-    && upx --brute /bin/bash /bin/zsh /usr/bin/tmux /bin/coreutils /usr/bin/micro \
     && apk del .build-deps
 
 WORKDIR /home/user/
