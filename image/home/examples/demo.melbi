@@ -1,0 +1,42 @@
+#!/usr/bin/env melbi run --runtime=evaluator
+{
+    quadratic = solve(1.0, -5.0, 6.0) where {
+        solve = (a, b, c) => {
+            equation = f"{ a }x² + { b }x + { c } = 0",
+            roots = [r1, r2],
+        } where {
+            delta = b ^ 2.0 - 4.0 * a * c,
+            r1 = (-b + delta ^ 0.5) / (2.0 * a),
+            r2 = (-b - delta ^ 0.5) / (2.0 * a),
+        },
+    },
+    safe_divide = result where {
+        divide = (a, b) => if b == 0 then none else some (a / b),
+        format = (opt) => opt match {
+            some x -> f"Result: { x }",
+            none -> "Cannot divide by zero!",
+        },
+        result = [
+            format(divide(10, 2)),
+            format(divide(10, 0)),
+        ],
+    },
+    shopping = {
+        items = cart,
+        subtotal = total,
+        discount = disc,
+        final = total * (1.0 - disc),
+    } where {
+        cart = [
+            { name = "Apple", price = 1.5, qty = 4 },
+            { name = "Bread", price = 3.0, qty = 2 },
+            { name = "Cheese", price = 8.0, qty = 1 },
+        ],
+        total = 1.5 * 4.0 + 3.0 * 2.0 + 8.0,
+        disc = if total > 50.0 then 0.1 else 0.0,
+    },
+    greeting = f"Hello! Pi = { pi }, e = { e }" where {
+        pi = 3.14159,
+        e = 2.71828,
+    },
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/env melbi run
+{
+    numbers = nums,
+    squared = Array.Map(nums, (x) => x * x),
+    doubled = Array.Map(nums, (x) => x * 2),
+    length = Array.Len(nums),
+    reversed = Array.Reverse(nums),
+    first_two = Array.Slice(nums, 0, 2),
+    combined = Array.Concat(nums, [6, 7, 8]),
+    nested = Array.Flatten([[1, 2], [3, 4]]),
+    pairs = Array.Zip(nums, Array.Reverse(nums)),
+} where {
+    nums = [1, 2, 3, 4, 5],
+}
