@@ -1,6 +1,6 @@
 FROM --platform=i386 i386/alpine:edge
 
-RUN apk add --no-cache bash coreutils mg doas micro mc bsd-games cmatrix sl figlet && \
+RUN apk add --no-cache bash coreutils mg doas mc bsd-games cmatrix sl figlet file lua clisp && \
     apk add --no-cache --virtual .build-deps shadow && \
     addgroup -S user && \
     adduser -G user -s /bin/bash -D -S user && \
