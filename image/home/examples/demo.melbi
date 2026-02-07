@@ -1,4 +1,4 @@
-#!/usr/bin/env melbi run --runtime=evaluator
+#!/usr/bin/env melbi run
 {
     quadratic = solve(1.0, -5.0, 6.0) where {
         solve = (a, b, c) => {
