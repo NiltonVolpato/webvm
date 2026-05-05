@@ -1,13 +1,11 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import NetworkingTab from './NetworkingTab.svelte';
-	import AnthropicTab from './AnthropicTab.svelte';
 	import CpuTab from './CpuTab.svelte';
 	import DiskTab from './DiskTab.svelte';
 	import UploadTab from './UploadTab.svelte';
 
-	export let activePanel = null; // 'network' | 'claude' | 'cpu' | 'disk' | 'upload' | null
-	export let handleTool = null;
+	export let activePanel = null; // 'network' | 'cpu' | 'disk' | 'upload' | null
 	export let onUpload = null;
 
 	const dispatch = createEventDispatcher();
@@ -30,7 +28,6 @@
 
 	const panelTitles = {
 		network: 'Networking',
-		claude: 'Claude AI',
 		cpu: 'CPU Activity',
 		disk: 'Disk',
 		upload: 'Upload File'
@@ -70,8 +67,6 @@
 			<div class="p-4 overflow-y-auto flex-1 text-gray-100">
 				{#if activePanel === 'network'}
 					<NetworkingTab on:connect />
-				{:else if activePanel === 'claude'}
-					<AnthropicTab {handleTool} />
 				{:else if activePanel === 'cpu'}
 					<CpuTab />
 				{:else if activePanel === 'disk'}

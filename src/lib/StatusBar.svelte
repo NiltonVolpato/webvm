@@ -4,7 +4,6 @@
         diskActivity,
         cpuPercentage,
         diskLatency,
-        aiActivity,
     } from "./activities.js";
     import { networkData } from "./network.js";
 
@@ -17,7 +16,6 @@
         cpu: "\u{f4bc}\u{00a0}", // nf-oct-cpu
         disk: "\u{f02ca}", // nf-md-harddisk
         wifi: "\u{f1eb}\u{00a0}", // nf-fa-wifi
-        robot: "\u{ee0d}\u{00a0}", // nf-fa-robot (2-char width)
         upload: "\u{f40a}\u{00a0}", // nf-oct-upload
     };
 
@@ -76,24 +74,6 @@
                 >{icons.wifi}</span
             >
             <span>Offline</span>
-        {/if}
-    </button>
-
-    <span class="text-neutral-600">|</span>
-
-    <!-- AI indicator -->
-    <button
-        on:click={() => onOpenPanel("claude")}
-        class="flex items-center gap-2 hover:text-white transition-colors"
-    >
-        <span
-            class:text-amber-400={$aiActivity}
-            class:animate-pulse={$aiActivity}
-            class="self-stretch min-w-[1lh] inline-flex items-center justify-center"
-            >{icons.robot}</span
-        >
-        {#if $aiActivity}
-            <span>AI Active</span>
         {/if}
     </button>
 

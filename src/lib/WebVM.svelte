@@ -8,7 +8,6 @@
 	import { networkInterface, startLogin } from '$lib/network.js'
 	import { cpuActivity, diskActivity, cpuPercentage, diskLatency } from '$lib/activities.js'
 	import { introMessage, errorMessage, unexpectedErrorMessage } from '$lib/messages.js'
-	import { displayConfig, handleToolImpl } from '$lib/anthropic.js'
 	import { tryPlausible } from '$lib/plausible.js'
 
 	export let configObj = null;
@@ -189,18 +188,6 @@
 		var internalWidth = Math.floor(displayWidth * internalMult);
 		var internalHeight = Math.floor(displayHeight * internalMult);
 		cx.setKmsCanvas(display, internalWidth, internalHeight);
-		// Compute the size to be used for AI screenshots
-		var screenshotMult = 1.0;
-		var maxWidth = 1024;
-		var maxHeight = 768;
-		if(internalWidth > maxWidth)
-			screenshotMult = maxWidth / internalWidth;
-		if(internalHeight > maxHeight)
-			screenshotMult = Math.min(screenshotMult, maxHeight / internalHeight);
-		var screenshotWidth = Math.floor(internalWidth * screenshotMult);
-		var screenshotHeight = Math.floor(internalHeight * screenshotMult);
-		// Track the state of the mouse as requested by the AI, to avoid losing the position due to user movement
-		displayConfig.set({width: screenshotWidth, height: screenshotHeight, mouseMult: internalMult * screenshotMult});
 	}
 	var curInnerWidth = 0;
 	var curInnerHeight = 0;
@@ -389,10 +376,6 @@
 		await blockCache.reset();
 		location.reload();
 	}
-	async function handleTool(tool)
-	{
-		return await handleToolImpl(tool, term);
-	}
 </script>
 
 <main class="relative w-full h-full flex flex-col">
@@ -412,7 +395,6 @@
 	<!-- Modal for panels -->
 	<PanelModal
 		bind:activePanel
-		handleTool={!configObj.needsDisplay || curVT == 7 ? handleTool : null}
 		onUpload={handleUpload}
 		on:connect={handleConnect}
 		on:reset={handleReset}

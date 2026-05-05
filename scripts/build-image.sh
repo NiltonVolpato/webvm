@@ -64,13 +64,13 @@ docker run --rm --pull always \
         mkdir -p /mnt/rootfs
         tar xf "/images/${IMAGE_NAME}.tar" -C /mnt/rootfs
 
-        # Calculate size: tar content + 20% headroom, minimum 64MB, round up
+        # Calculate size: tar content + 30% headroom for 4K block overhead, minimum 64MB
         SIZE_KB=$(du -sk /mnt/rootfs | cut -f1)
-        SIZE_MB=$(( (SIZE_KB + SIZE_KB / 5) / 1024 + 1 ))
+        SIZE_MB=$(( (SIZE_KB + SIZE_KB * 3 / 10) / 1024 + 1 ))
         [ $SIZE_MB -lt 64 ] && SIZE_MB=64
 
         dd if=/dev/zero of="/images/${IMAGE_NAME}.ext2" bs=1M count=$SIZE_MB 2>/dev/null
-        mkfs.ext2 -q -d /mnt/rootfs "/images/${IMAGE_NAME}.ext2"
+        mkfs.ext2 -q -b 4096 -d /mnt/rootfs "/images/${IMAGE_NAME}.ext2"
     '
 
 EXT2_SIZE=$(ls -lh "$OUTPUT_EXT2" | awk '{print $5}')
