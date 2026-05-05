@@ -1,25 +1,33 @@
 // The root filesystem location
-export const diskImageUrl = IMAGE_URL;
+export const diskImageUrl = '/disk-images/alpine_mini.ext2';
 // The root filesystem backend type
-export const diskImageType = "github";
+export const diskImageType = 'bytes';
 // Print an introduction message about the technology
 export const printIntro = true;
 // Is a graphical display needed
 export const needsDisplay = false;
 // Executable full path (Required)
-export const cmd = CMD; // Default: "/bin/bash";
+export const cmd = '/bin/bash';
 // Arguments, as an array (Required)
-export const args = ARGS; // Default: ["--login"];
+export const args = ['--login'];
 // Optional extra parameters
 export const opts = {
   // Environment variables
-  env: ENV, // Default: ["HOME=/home/user", "TERM=xterm", "USER=user", "SHELL=/bin/bash", "EDITOR=vim", "LANG=en_US.UTF-8", "LC_ALL=C"],
+  env: [
+    'HOME=/home/user',
+    'TERM=xterm',
+    'USER=user',
+    'SHELL=/bin/bash',
+    'EDITOR=mg',
+    'LANG=en_US.UTF-8',
+    'LC_ALL=en_US.UTF-8',
+  ],
   // Current working directory
-  cwd: CWD, // Default: "/home/user",
+  cwd: '/home/user',
   // User id
   uid: 100,
   // Group id
-  gid: 100,
+  gid: 101,
 };
 // Web device base path (relative to the web server root)
-export const webDevicePath = "";
+export const webDevicePath = '';

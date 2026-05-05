@@ -121,7 +121,7 @@ mv debian_mini_20230519_5022088024.ext2 disk-images/
 
 ### 3. Update config
 
-Edit `config_public_terminal.js`:
+Edit `config_public.js`:
 - Change the disk URL to `/disk-images/debian_mini_20230519_5022088024.ext2`
 - Change disk type from `"cloud"` to `"bytes"`
 
