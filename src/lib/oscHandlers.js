@@ -14,7 +14,7 @@ export function registerOscHandlers(term, panelCallback, { uploadDeviceGetter })
 
 		switch (command) {
 			case 'open':
-				if (['network', 'claude', 'cpu', 'disk', 'upload'].includes(arg)) {
+				if (['network', 'cpu', 'disk', 'upload'].includes(arg)) {
 					panelCallback(arg);
 					return true;
 				}
