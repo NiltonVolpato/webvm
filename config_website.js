@@ -1,5 +1,5 @@
 // The root filesystem location
-export const diskImageUrl = 'alpine_mini.ext2';
+export const diskImageUrl = '/terminal/alpine_mini.ext2';
 // The root filesystem backend type
 export const diskImageType = 'bytes';
 // Print an introduction message about the technology
