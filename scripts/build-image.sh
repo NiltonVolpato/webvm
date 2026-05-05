@@ -43,7 +43,11 @@ echo ""
 
 # Show largest files
 echo ">>> Largest files in image:"
-tar tvf "$OUTPUT_TAR" | sort -k3 -n -r | head -10
+if tar --version 2>&1 | grep -q "GNU"; then
+    tar tvf "$OUTPUT_TAR" | sort -k3 -n -r | head -10
+else
+    tar tvf "$OUTPUT_TAR" | sort -k5 -n -r | head -10
+fi
 echo ""
 
 # Create ext2 image using Docker (cross-platform, no loopback mount needed)
