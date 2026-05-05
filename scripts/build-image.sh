@@ -46,33 +46,31 @@ echo ">>> Largest files in image:"
 tar tvf "$OUTPUT_TAR" | sort -k3 -n -r | head -10
 echo ""
 
-# Create ext2 image
+# Create ext2 image using Docker (cross-platform, no loopback mount needed)
 echo ">>> Creating ext2 image..."
-# Calculate size needed (tar size + 20% headroom, minimum 64MB)
-TAR_BYTES=$(stat -f%z "$OUTPUT_TAR" 2>/dev/null || stat -c%s "$OUTPUT_TAR")
-EXT2_SIZE=$(( (TAR_BYTES * 120 / 100) / 1024 / 1024 ))
-EXT2_SIZE=$(( EXT2_SIZE < 64 ? 64 : EXT2_SIZE ))
+docker run --rm \
+    -v "$OUTPUT_DIR:/images" \
+    -e "IMAGE_NAME=$IMAGE_NAME" \
+    alpine:latest \
+    sh -c '
+        set -e
+        apk add --no-cache e2fsprogs >/dev/null 2>&1
 
-dd if=/dev/zero of="$OUTPUT_EXT2" bs=1M count="$EXT2_SIZE" 2>/dev/null
-mkfs.ext2 -q "$OUTPUT_EXT2"
+        # Extract tar to temp directory
+        mkdir -p /mnt/rootfs
+        tar xf "/images/${IMAGE_NAME}.tar" -C /mnt/rootfs
 
-# Mount and extract
-MOUNT_POINT=$(mktemp -d)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS - requires fuse-ext2 or similar
-    echo "Note: ext2 mounting on macOS requires fuse-ext2"
-    echo "Skipping ext2 creation - tar file is ready for manual extraction"
-    rm -f "$OUTPUT_EXT2"
-    rm -rf "$MOUNT_POINT"
-else
-    sudo mount -o loop "$OUTPUT_EXT2" "$MOUNT_POINT"
-    sudo tar xf "$OUTPUT_TAR" -C "$MOUNT_POINT"
-    sudo umount "$MOUNT_POINT"
-    rm -rf "$MOUNT_POINT"
+        # Calculate size: tar content + 20% headroom, minimum 64MB, round up
+        SIZE_KB=$(du -sk /mnt/rootfs | cut -f1)
+        SIZE_MB=$(( (SIZE_KB + SIZE_KB / 5) / 1024 + 1 ))
+        [ $SIZE_MB -lt 64 ] && SIZE_MB=64
 
-    EXT2_SIZE=$(ls -lh "$OUTPUT_EXT2" | awk '{print $5}')
-    echo "Created: $OUTPUT_EXT2 ($EXT2_SIZE)"
-fi
+        dd if=/dev/zero of="/images/${IMAGE_NAME}.ext2" bs=1M count=$SIZE_MB 2>/dev/null
+        mkfs.ext2 -q -d /mnt/rootfs "/images/${IMAGE_NAME}.ext2"
+    '
+
+EXT2_SIZE=$(ls -lh "$OUTPUT_EXT2" | awk '{print $5}')
+echo "Created: $OUTPUT_EXT2 ($EXT2_SIZE)"
 echo ""
 
 # Run tests
