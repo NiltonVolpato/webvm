@@ -48,7 +48,7 @@ echo ""
 
 # Create ext2 image using Docker (cross-platform, no loopback mount needed)
 echo ">>> Creating ext2 image..."
-docker run --rm \
+docker run --rm --pull always \
     -v "$OUTPUT_DIR:/images" \
     -e "IMAGE_NAME=$IMAGE_NAME" \
     alpine:latest \
@@ -83,7 +83,7 @@ run_test() {
     local cmd="$2"
     local expected="$3"
 
-    result=$(docker run --rm "$IMAGE_NAME" sh -c "$cmd" 2>&1) || true
+    result=$(docker run --rm --platform linux/386 "$IMAGE_NAME" sh -c "$cmd" 2>&1) || true
     if echo "$result" | grep -q "$expected"; then
         echo "  ✓ $name"
         ((TESTS_PASSED++))
