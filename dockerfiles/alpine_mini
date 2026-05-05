@@ -1,4 +1,4 @@
-FROM --platform=i386 i386/alpine:edge
+FROM i386/alpine:edge
 
 RUN apk add --no-cache bash coreutils mg doas mc bsd-games cmatrix sl figlet file lua txr && \
     apk add --no-cache --virtual .build-deps shadow && \
