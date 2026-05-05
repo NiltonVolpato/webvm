@@ -1,5 +1,5 @@
 // The root filesystem location
-export const diskImageUrl = "/disk-images/alpine_mini_20260118_21107018777.ext2";
+export const diskImageUrl = "/disk-images/alpine_mini.ext2";
 // The root filesystem backend type
 export const diskImageType = "bytes";
 // Print an introduction message about the technology
@@ -12,14 +12,22 @@ export const cmd = "/bin/bash";
 export const args = ["--login"];
 // Optional extra parameters
 export const opts = {
-	// Environment variables
-	env: ["HOME=/home/user", "TERM=xterm", "USER=user", "SHELL=/bin/bash", "EDITOR=vim", "LANG=en_US.UTF-8", "LC_ALL=C"],
-	// Current working directory
-	cwd: "/home/user",
-	// User id
-	uid: 1000,
-	// Group id
-	gid: 1000
+  // Environment variables
+  env: [
+    "HOME=/home/user",
+    "TERM=xterm",
+    "USER=user",
+    "SHELL=/bin/bash",
+    "EDITOR=mg",
+    "LANG=en_US.UTF-8",
+    "LC_ALL=en_US.UTF-8",
+  ],
+  // Current working directory
+  cwd: "/home/user",
+  // User id
+  uid: 100,
+  // Group id
+  gid: 101,
 };
 // Web device base path (relative to the web server root)
 export const webDevicePath = "";
