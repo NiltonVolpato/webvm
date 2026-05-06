@@ -52,22 +52,24 @@ echo ""
 
 # Create ext2 image using Docker (cross-platform, no loopback mount needed)
 echo ">>> Creating ext2 image..."
-docker run --rm --pull always \
+if ! docker run --rm --pull always \
     -v "$OUTPUT_DIR:/images" \
     -e "IMAGE_NAME=$IMAGE_NAME" \
     alpine:latest \
     sh -c '
         set -e
-        apk add --no-cache e2fsprogs >/dev/null 2>&1
+        apk add --no-cache genext2fs
 
-        # Calculate size: tar size + 30% headroom for 4K block overhead, minimum 64MB
-        SIZE_KB=$(du -sk "/images/${IMAGE_NAME}.tar" | cut -f1)
-        SIZE_MB=$(( (SIZE_KB + SIZE_KB * 3 / 10) / 1024 + 1 ))
-        [ $SIZE_MB -lt 64 ] && SIZE_MB=64
+        # Calculate size: tar content + 30% headroom for 4K block overhead, minimum 64MB
+        TAR_KB=$(du -sk "/images/${IMAGE_NAME}.tar" | cut -f1)
+        SIZE_BLOCKS=$(( (TAR_KB + TAR_KB * 3 / 10) * 2 + 1 ))
+        [ $SIZE_BLOCKS -lt 16384 ] && SIZE_BLOCKS=16384
 
-        dd if=/dev/zero of="/images/${IMAGE_NAME}.ext2" bs=1M count=$SIZE_MB 2>/dev/null
-        mkfs.ext2 -q -b 4096 -d "/images/${IMAGE_NAME}.tar" "/images/${IMAGE_NAME}.ext2"
-    '
+        genext2fs -a "/images/${IMAGE_NAME}.tar" -B 4096 -b $SIZE_BLOCKS "/images/${IMAGE_NAME}.ext2"
+    '; then
+    echo "ERROR: Failed to create ext2 image" >&2
+    exit 1
+fi
 
 EXT2_SIZE=$(ls -lh "$OUTPUT_EXT2" | awk '{print $5}')
 echo "Created: $OUTPUT_EXT2 ($EXT2_SIZE)"
