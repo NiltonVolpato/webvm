@@ -1,4 +1,4 @@
-#!/usr/bin/env lua5.5
+#!/usr/bin/env lua5.4
 -- Number guessing game
 
 math.randomseed(os.time())

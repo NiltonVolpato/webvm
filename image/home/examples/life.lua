@@ -1,4 +1,4 @@
-#!/usr/bin/env lua5.5
+#!/usr/bin/env lua5.4
 -- Conway's Game of Life
 
 local W, H = 40, 20
