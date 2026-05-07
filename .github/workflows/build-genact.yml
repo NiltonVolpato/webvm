@@ -1,0 +1,31 @@
+name: Build Genact
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain for i686-musl
+        run: |
+          rustup target add i686-unknown-linux-musl
+          sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - name: Build genact
+        run: |
+          cargo install genact --target i686-unknown-linux-musl --root /tmp/genact
+          strip /tmp/genact/bin/genact
+
+      - name: Upload genact release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: genact-i686
+          make_latest: false
+          target_commitish: ${{ github.sha }}
+          files: |
+            /tmp/genact/bin/genact
