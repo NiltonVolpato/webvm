@@ -25,9 +25,9 @@ export const opts = {
   // Current working directory
   cwd: "/home/user",
   // User id
-  uid: 100,
+  uid: 1000,
   // Group id
-  gid: 101,
+  gid: 1000,
 };
 // Web device base path (relative to the web server root)
 export const webDevicePath = "";

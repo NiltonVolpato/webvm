@@ -2,8 +2,8 @@ FROM --platform=i386 i386/alpine:3.20
 
 RUN apk add --no-cache bash coreutils mg doas mc bsd-games cmatrix sl figlet file lua txr && \
     apk add --no-cache --virtual .build-deps shadow && \
-    addgroup -S user && \
-    adduser -G user -s /bin/bash -D -S user && \
+    addgroup user && \
+    adduser -G user -s /bin/bash -D user && \
     echo "user:password" | chpasswd && \
     echo "root:password" | chpasswd && \
     echo "permit persist :user" > /etc/doas.d/doas.conf && \
