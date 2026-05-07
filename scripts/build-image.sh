@@ -48,7 +48,7 @@ docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 # Create container and export
 echo ">>> Exporting filesystem..."
 docker create --platform linux/386 --name "$CONTAINER_NAME" "$IMAGE_NAME" >/dev/null
-docker export "$CONTAINER_NAME" > "$OUTPUT_TAR"
+docker export "$CONTAINER_NAME" >"$OUTPUT_TAR"
 docker rm "$CONTAINER_NAME" >/dev/null
 
 TAR_SIZE=$(ls -lh "$OUTPUT_TAR" | awk '{print $5}')
@@ -93,16 +93,6 @@ echo ""
 # Run tests
 set +e
 echo ">>> Running smoke tests..."
-
-# On non-x86 hosts (arm64 Macs without Rosetta), i386 Docker images
-# run under qemu-user which has known syscall gaps (e.g. renameat2).
-# Test failures here don't indicate a broken image — CheerpX provides
-# full x86 emulation in the browser.
-SMOKE_TESTS_FATAL=true
-if [ "$(uname -m)" != "x86_64" ]; then
-    echo "Note: running on $(uname -m) — smoke test failures are non-fatal (qemu-user limitations)"
-    SMOKE_TESTS_FATAL=false
-fi
 
 TESTS_PASSED=0
 TESTS_FAILED=0
@@ -162,10 +152,7 @@ echo ""
 
 if [ $TESTS_FAILED -gt 0 ]; then
     echo "Some tests failed!"
-    if $SMOKE_TESTS_FATAL; then
-        exit 1
-    fi
-    echo "Continuing — test failures are non-fatal on this platform."
+    exit 1
 fi
 
 echo "Build complete: $OUTPUT_TAR"
