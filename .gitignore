@@ -8,3 +8,5 @@ build/
 /nginx_access.log
 /nginx_user.pid
 /disk-images/
+custom-disk-images/*
+!custom-disk-images/.gitkeep

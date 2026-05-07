@@ -1,4 +1,4 @@
-FROM --platform=i386 i386/alpine:edge
+FROM --platform=linux/386 i386/alpine:edge
 
 RUN apk add --no-cache bash zsh coreutils mg doas tmux python3 && \
     apk add --no-cache --virtual .build-deps shadow && \

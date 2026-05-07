@@ -1,4 +1,4 @@
-FROM --platform=i386 i386/alpine:edge AS builder
+FROM --platform=linux/386 i386/alpine:edge AS builder
 
 COPY image/python-deps.txt /tmp/requirements.txt
 

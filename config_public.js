@@ -1,6 +1,6 @@
-// The root filesystem location
+// The root OS image location, change to local filepath if serving locally
 export const diskImageUrl = "/disk-images/alpine_mini.ext2";
-// The root filesystem backend type
+// The root filesystem backend type use "cloud" for serving remotely or "bytes" for serving locally
 export const diskImageType = "bytes";
 // Print an introduction message about the technology
 export const printIntro = true;
@@ -29,5 +29,3 @@ export const opts = {
   // Group id
   gid: 1000,
 };
-// Web device base path (relative to the web server root)
-export const webDevicePath = "";
