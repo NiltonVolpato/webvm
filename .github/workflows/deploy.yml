@@ -15,12 +15,6 @@ on:
           - "dockerfiles/alpine_mini"
           - "dockerfiles/alpine_python_minimal"
 
-      IMAGE_SIZE:
-        type: string
-        description: "Image size, 950M max (use 250M for python)"
-        required: true
-        default: "60M"
-
       DEPLOY_TO_GITHUB_PAGES:
         type: boolean
         description: "Deploy to Github pages"
@@ -93,8 +87,6 @@ jobs:
     runs-on: ubuntu-latest # Image to run the worker on.
 
     env:
-      TAG: "ext2-webvm-base-image" # Tag of docker image.
-      IMAGE_SIZE: "${{ github.event.inputs.IMAGE_SIZE }}"
       DEPLOY_DIR: /webvm_deploy/ # Path to directory where we host the final image from.
 
     permissions: # Permissions to grant the GITHUB_TOKEN.
@@ -116,96 +108,20 @@ jobs:
       # Create directory to host the image from.
       - run: sudo mkdir -p $DEPLOY_DIR
 
-      # Build melbi from source
-      - name: Install Rust toolchain for i686-musl
-        run: |
-          rustup target add i686-unknown-linux-musl
-          sudo apt-get update && sudo apt-get install -y musl-tools
+      # Build the Docker image, export the filesystem, and create the ext2 image.
+      - name: Build image
+        run: ./scripts/build-image.sh "${{ github.event.inputs.DOCKERFILE_PATH }}" "${{ env.IMAGE_NAME }}"
 
-      - name: Clone and build melbi
-        run: |
-          git clone --depth 1 https://github.com/melbi-lang/melbi.git /tmp/melbi
-          cd /tmp/melbi
-          cargo build --package melbi-cli --target i686-unknown-linux-musl --release
-          strip target/i686-unknown-linux-musl/release/melbi-cli
-          cp target/i686-unknown-linux-musl/release/melbi-cli $GITHUB_WORKSPACE/image/bin/melbi
-
-      - name: Build genact
-        run: |
-          cargo install genact --target i686-unknown-linux-musl --root /tmp/genact
-          strip /tmp/genact/bin/genact
-          cp /tmp/genact/bin/genact $GITHUB_WORKSPACE/image/bin/genact
-
-      # Build the i386 Dockerfile image.
-      - run: docker build . --tag $TAG --file ${{ github.event.inputs.DOCKERFILE_PATH }} --platform=i386
-
-      # Run the docker image so that we can export the container.
-      # Run the Docker container with the Google Public DNS nameservers: 8.8.8.8, 8.8.4.4
-      - run: |
-          docker run --dns 8.8.8.8 --dns 8.8.4.4 -d $TAG
-          echo "CONTAINER_ID=$(sudo docker ps -aq)" >> $GITHUB_ENV
-
-      # We extract the CMD, we first need to figure whether the Dockerfile uses CMD or an Entrypoint.
-      - name: Extracting CMD / Entrypoint and args
-        shell: bash
-        run: |
-          cmd=$(sudo docker inspect --format='{{json .Config.Cmd}}' $CONTAINER_ID)
-          entrypoint=$(sudo docker inspect --format='{{json .Config.Entrypoint}}' $CONTAINER_ID)
-          if [[ $entrypoint != "null" && $cmd != "null" ]]; then
-            echo "CMD=$( sudo docker inspect $CONTAINER_ID | jq --compact-output '.[0].Config.Entrypoint' )" >> $GITHUB_ENV
-            echo "ARGS=$( sudo docker inspect $CONTAINER_ID | jq --compact-output '.[0].Config.Cmd' )" >> $GITHUB_ENV
-          elif [[ $cmd != "null" ]]; then
-            echo "CMD=$( sudo docker inspect $CONTAINER_ID | jq --compact-output '.[0].Config.Cmd[:1]' )" >> $GITHUB_ENV
-            echo "ARGS=$( sudo docker inspect $CONTAINER_ID | jq --compact-output '.[0].Config.Cmd[1:]' )" >> $GITHUB_ENV
-          else
-            echo "CMD=$( sudo docker inspect $CONTAINER_ID | jq --compact-output '.[0].Config.Entrypoint[:1]' )" >> $GITHUB_ENV
-            echo "ARGS=$( sudo docker inspect $CONTAINER_ID | jq --compact-output '.[0].Config.Entrypoint[1:]' )" >> $GITHUB_ENV
-          fi
-
-      # We extract the ENV, CMD/Entrypoint and cwd from the Docker container with docker inspect.
-      - name: Extracting env, args and cwd.
-        shell: bash
-        run: |
-          echo "ENV=$( sudo docker inspect $CONTAINER_ID | jq --compact-output  '.[0].Config.Env' )" >> $GITHUB_ENV
-          echo "CWD=$( sudo docker inspect $CONTAINER_ID | jq --compact-output '.[0].Config.WorkingDir' )" >> $GITHUB_ENV
-
-      # We create and mount the base ext2 image to extract the Docker container's filesystem its contents into.
-      - name: Create ext2 image.
-        run: |
-          # Preallocate space for the ext2 image
-          sudo fallocate -l $IMAGE_SIZE ${IMAGE_NAME}
-          # Format to ext2 linux kernel revision 0
-          sudo mkfs.ext2 -r 0 ${IMAGE_NAME}
-          # Mount the ext2 image to modify it
-          sudo mount -o loop -t ext2 ${IMAGE_NAME} /mnt/
-
-      # We opt for 'docker cp --archive' over 'docker save' since our focus is solely on the end product rather than individual layers and metadata.
-      # However, it's important to note that despite being specified in the documentation, the '--archive' flag does not currently preserve uid/gid information when copying files from the container to the host machine.
-      # Another compelling reason to use 'docker cp' is that it preserves resolv.conf.
-      - name: Export and unpack container filesystem contents into mounted ext2 image.
-        run: |
-          sudo docker export ${CONTAINER_ID} | sudo tar xf - -C /mnt/
-          sudo umount /mnt/
-      # Result is an ext2 image for webvm.
       # The .txt suffix enabled HTTP compression for free
       - name: Generate image split chunks and .meta file
         run: |
-          sudo split ${{ env.IMAGE_NAME }} ${{ env.DEPLOY_DIR }}/${{ env.IMAGE_NAME }}.c -a 6 -b 128k -x --additional-suffix=.txt
-          sudo bash -c "stat -c%s ${{ env.IMAGE_NAME }} > ${{ env.DEPLOY_DIR }}/${{ env.IMAGE_NAME }}.meta"
+          sudo split "disk-images/${{ env.IMAGE_NAME }}" "${{ env.DEPLOY_DIR }}/${{ env.IMAGE_NAME }}.c" -a 6 -b 128k -x --additional-suffix=.txt
+          sudo bash -c "stat -c%s 'disk-images/${{ env.IMAGE_NAME }}' > '${{ env.DEPLOY_DIR }}/${{ env.IMAGE_NAME }}.meta'"
 
-      # This step updates the default config_github_terminal.js file by performing the following actions:
-      #   1. Replaces all occurrences of IMAGE_URL with the URL to the image.
-      #   2. Replace CMD with the Dockerfile entry command.
-      #   3. Replace args with the Dockerfile CMD / Entrypoint args.
-      #   4. Replace ENV with the container's environment values.
-      #   5. Replace CWD with the container's current working directory.
-      - name: Adjust config_github_terminal.js
+      # Replace IMAGE_URL with the actual image name so the web app knows what to load.
+      - name: Adjust config_github.js
         run: |
-          sed -i 's#IMAGE_URL#"${{ env.IMAGE_NAME }}"#g' config_github_terminal.js
-          sed -i 's#CMD#${{ env.CMD }}#g' config_github_terminal.js
-          sed -i 's#ARGS#${{ env.ARGS }}#g' config_github_terminal.js
-          sed -i 's#ENV#${{ env.ENV }}#g' config_github_terminal.js
-          sed -i 's#CWD#${{ env.CWD }}#g' config_github_terminal.js
+          sed -i 's#IMAGE_URL#"${{ env.IMAGE_NAME }}"#g' config_github.js
 
       - name: Build NPM package
         run: |
@@ -245,7 +161,7 @@ jobs:
           tag_name: ext2_image
           fail_on_unmatched_files: "true" # Fail in case of no matches with the file(s) glob(s).
           files: | # Assets to upload as release.
-            ${{ env.IMAGE_NAME }}
+            disk-images/${{ env.IMAGE_NAME }}
 
   deploy_to_github_pages: # Job that deploys the github-pages artifact to github-pages.
     if: ${{ github.event.inputs.DEPLOY_TO_GITHUB_PAGES == 'true' }}

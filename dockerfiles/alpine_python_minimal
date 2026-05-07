@@ -41,6 +41,9 @@ COPY --from=builder /usr/bin/python3.12 /usr/bin/python3.12
 COPY --from=builder /tmp/pip_bins/ /usr/bin/
 RUN ln -s python3.12 /usr/bin/python3 && ln -s python3 /usr/bin/python
 
+RUN busybox wget -O /usr/local/bin/genact https://github.com/NiltonVolpato/webvm/releases/download/genact-i686/genact && \
+    chmod +x /usr/local/bin/genact
+
 WORKDIR /home/user/
 
 COPY --chown=user:user image/home/ /home/user/

@@ -3,24 +3,38 @@ set -uo pipefail
 
 # Build and test a WebVM Docker image
 #
-# Usage: ./scripts/build-image.sh [dockerfile] [image-name]
+# Usage: ./scripts/build-image.sh [dockerfile] [image-name] [output-dir]
 #   dockerfile: path to Dockerfile (default: dockerfiles/alpine_mini)
 #   image-name: name for the image (default: derived from dockerfile)
+#   output-dir: directory for output files (default: PROJECT_DIR/disk-images)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 DOCKERFILE="${1:-dockerfiles/alpine_mini}"
 IMAGE_NAME="${2:-$(basename "$DOCKERFILE")}"
-CONTAINER_NAME="${IMAGE_NAME}_build"
-OUTPUT_DIR="$PROJECT_DIR/disk-images"
-OUTPUT_TAR="$OUTPUT_DIR/${IMAGE_NAME}.tar"
-OUTPUT_EXT2="$OUTPUT_DIR/${IMAGE_NAME}.ext2"
+OUTPUT_DIR="${3:-$PROJECT_DIR/disk-images}"
+
+# Handle image name that may already include .ext2 extension
+if [[ "$IMAGE_NAME" == *.ext2 ]]; then
+    EXT2_NAME="$IMAGE_NAME"
+    TAR_NAME="${IMAGE_NAME%.ext2}.tar"
+else
+    EXT2_NAME="${IMAGE_NAME}.ext2"
+    TAR_NAME="${IMAGE_NAME}.tar"
+fi
+
+CONTAINER_NAME="${IMAGE_NAME%.ext2}_build"
+OUTPUT_TAR="$OUTPUT_DIR/$TAR_NAME"
+OUTPUT_EXT2="$OUTPUT_DIR/$EXT2_NAME"
 
 cd "$PROJECT_DIR"
 
+mkdir -p "$OUTPUT_DIR"
+
 echo "=== Building image: $IMAGE_NAME ==="
 echo "Dockerfile: $DOCKERFILE"
+echo "Output directory: $OUTPUT_DIR"
 echo ""
 
 # Build the Docker image
@@ -54,18 +68,19 @@ echo ""
 echo ">>> Creating ext2 image..."
 if ! docker run --rm --pull always \
     -v "$OUTPUT_DIR:/images" \
-    -e "IMAGE_NAME=$IMAGE_NAME" \
+    -e "TAR_NAME=$TAR_NAME" \
+    -e "EXT2_NAME=$EXT2_NAME" \
     alpine:latest \
     sh -c '
         set -e
         apk add --no-cache genext2fs
 
-        # Calculate size: tar content + 30% headroom for 4K block overhead, minimum 64MB
-        TAR_KB=$(du -sk "/images/${IMAGE_NAME}.tar" | cut -f1)
-        SIZE_BLOCKS=$(( (TAR_KB + TAR_KB * 3 / 10) * 2 + 1 ))
-        [ $SIZE_BLOCKS -lt 16384 ] && SIZE_BLOCKS=16384
+        # Calculate size: tar content + 30% headroom, converted to 4K blocks
+        TAR_KB=$(du -sk "/images/${TAR_NAME}" | cut -f1)
+        SIZE_BLOCKS=$(( TAR_KB * 13 / 10 / 4 ))
+        echo "Tar size: ${TAR_KB}KB, Image size: ${SIZE_BLOCKS} blocks ($(( SIZE_BLOCKS * 4 ))KB)"
 
-        genext2fs -a "/images/${IMAGE_NAME}.tar" -B 4096 -b $SIZE_BLOCKS "/images/${IMAGE_NAME}.ext2"
+        genext2fs -a "/images/${TAR_NAME}" -B 4096 -b $SIZE_BLOCKS "/images/${EXT2_NAME}"
     '; then
     echo "ERROR: Failed to create ext2 image" >&2
     exit 1
@@ -109,7 +124,12 @@ run_test() {
 }
 
 run_test "bash works" "bash --version" "GNU bash"
-run_test "zsh works" "zsh --version" "zsh"
+
+# zsh is not present in all images
+if docker run --rm "$IMAGE_NAME" which zsh >/dev/null 2>&1; then
+    run_test "zsh works" "zsh --version" "zsh"
+fi
+
 run_test "coreutils works" "ls --version" "coreutils"
 run_test "user exists" "id user" "user"
 run_test "home directory" "ls -la /home/user" ".bashrc"
@@ -128,6 +148,11 @@ if docker run --rm "$IMAGE_NAME" which python3 >/dev/null 2>&1; then
     run_test "tte available" "which tte" "/usr/bin/tte"
 fi
 
+# genact test (if installed)
+if docker run --rm "$IMAGE_NAME" which genact >/dev/null 2>&1; then
+    run_test "genact works" "genact --help" "genact"
+fi
+
 echo ""
 echo "=== Results ==="
 echo "Passed: $TESTS_PASSED"
@@ -143,3 +168,4 @@ if [ $TESTS_FAILED -gt 0 ]; then
 fi
 
 echo "Build complete: $OUTPUT_TAR"
+echo "Ext2 image: $OUTPUT_EXT2"
