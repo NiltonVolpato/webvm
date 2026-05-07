@@ -12,10 +12,11 @@ RUN apk add --no-cache bash coreutils mg doas mc bsd-games cmatrix sl figlet fil
 WORKDIR /home/user/
 
 RUN apk add --no-cache curl && \
-    curl -fLo /usr/local/bin/melbi https://github.com/melbi-lang/melbi/releases/download/pre-alpha/melbi-i686-unknown-linux-musl && \
+    curl -sfLo /usr/local/bin/melbi https://github.com/melbi-lang/melbi/releases/download/pre-alpha/melbi-i686-unknown-linux-musl && \
     chmod +x /usr/local/bin/melbi && \
-    curl -fLo /usr/local/bin/genact https://github.com/NiltonVolpato/webvm/releases/download/genact-i686/genact && \
+    curl -sfLo /usr/local/bin/genact https://github.com/NiltonVolpato/webvm/releases/download/genact-i686/genact && \
     chmod +x /usr/local/bin/genact && \
+    curl -sfL https://github.com/micro-editor/micro/releases/download/nightly/micro-nightly-linux32.tar.gz | tar -xz -C /usr/local/bin/ --strip-components=1 micro-nightly/micro && \
     apk del curl
 
 COPY --chown=user:user image/home/ /home/user/

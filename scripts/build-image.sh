@@ -1,5 +1,5 @@
 #!/bin/bash
-set -uo pipefail
+set -eu
 
 # Build and test a WebVM Docker image
 #
@@ -91,6 +91,7 @@ echo "Created: $OUTPUT_EXT2 ($EXT2_SIZE)"
 echo ""
 
 # Run tests
+set +e
 echo ">>> Running smoke tests..."
 
 # On non-x86 hosts (arm64 Macs without Rosetta), i386 Docker images
