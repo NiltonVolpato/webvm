@@ -5,7 +5,7 @@
 	import { registerOscHandlers } from '$lib/oscHandlers.js';
 	import '$lib/global.css';
 	import '@xterm/xterm/css/xterm.css'
-	import { networkInterface, startLogin } from '$lib/network.js'
+	import { networkInterface, networkData, startLogin } from '$lib/network.js'
 	import { cpuActivity, diskActivity, cpuPercentage, diskLatency } from '$lib/activities.js'
 	import { introMessage, errorMessage, unexpectedErrorMessage } from '$lib/messages.js'
 	import { tryPlausible } from '$lib/plausible.js'
@@ -364,9 +364,24 @@
 	onMount(initTerminal);
 	async function handleConnect()
 	{
+		// NOTE: Logging in with an auth key produces no login URL
+		if(networkInterface.authKey)
+		{
+			networkData.connectionState.set("LOGINSTARTING");
+			cx.networkLogin();
+			return;
+		}
 		const w = window.open("login.html", "_blank");
 		cx.networkLogin();
-		w.location.href = await startLogin();
+		try
+		{
+			w.location.href = await startLogin();
+		}
+		catch(e)
+		{
+			w.close();
+			console.warn(e);
+		}
 	}
 	async function handleReset()
 	{

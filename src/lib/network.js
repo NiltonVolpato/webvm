@@ -11,14 +11,40 @@ if(browser)
 }
 let dashboardUrl = controlUrl ? null : "https://login.tailscale.com/admin/machines";
 let resolveLogin = null;
-let loginPromise = new Promise((f,r) => {
-	resolveLogin = f;
-});
+let rejectLogin = null;
+let loginPromise = null;
 let connectionState = writable("DISCONNECTED");
 let exitNode = writable(false);
 
+function resetLoginPromise()
+{
+	loginPromise = new Promise((f,r) => {
+		resolveLogin = f;
+		rejectLogin = r;
+	});
+}
+
+function validateLoginUrl(url)
+{
+	const parsedUrl = new URL(url);
+	if(parsedUrl.protocol != "https:" && parsedUrl.protocol != "http:")
+		throw new Error("Invalid Tailscale login URL scheme");
+	return parsedUrl.href;
+}
+
 function loginUrlCb(url)
 {
+	try
+	{
+		url = validateLoginUrl(url);
+	}
+	catch(e)
+	{
+		connectionState.set("LOGINFAILED");
+		rejectLogin(e);
+		resetLoginPromise();
+		return;
+	}
 	connectionState.set("LOGINREADY");
 	resolveLogin(url);
 }
@@ -118,6 +144,15 @@ export function updateButtonData(state, handleConnect) {
 				buttonTooltip: null,
 				rightClickHandler: null
 			};
+		case "LOGINFAILED":
+			return {
+				buttonText: "Invalid login URL",
+				isClickable: false,
+				clickHandler: null,
+				clickUrl: null,
+				buttonTooltip: null,
+				rightClickHandler: null
+			};
 		case "CONNECTED":
 			return {
 				buttonText: `IP: ${networkData.currentIp}`,
@@ -151,3 +186,5 @@ export function updateButtonData(state, handleConnect) {
 export const networkInterface = { authKey: authKey, controlUrl: controlUrl, loginUrlCb: loginUrlCb, stateUpdateCb: stateUpdateCb, netmapUpdateCb: netmapUpdateCb };
 
 export const networkData = { currentIp: null, connectionState: connectionState, exitNode: exitNode, loginUrl: null, dashboardUrl: dashboardUrl }
+
+resetLoginPromise();
