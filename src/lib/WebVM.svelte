@@ -312,14 +312,31 @@
 		}
 		blockCache = await CheerpX.IDBDevice.create(cacheId);
 		var overlayDevice = await CheerpX.OverlayDevice.create(blockDevice, blockCache);
-		var webDevice = await CheerpX.WebDevice.create(configObj.webDevicePath ?? "");
+		// /web: either an ext2 image split in chunks (static files, no Range
+		// requests or index.list needed), or files on the Web server
+		var webMount;
+		if(configObj.webImageUrl)
+		{
+			// ext2 needs a writable device: overlay a scratch IndexedDB store,
+			// cleared on every load so /web always matches the deployed site
+			var webImageDevice = await CheerpX.GitHubDevice.create(configObj.webImageUrl);
+			var webScratch = await CheerpX.IDBDevice.create("web_scratch");
+			await webScratch.reset();
+			var webOverlay = await CheerpX.OverlayDevice.create(webImageDevice, webScratch);
+			webMount = {type:"ext2", dev:webOverlay, path:"/web"};
+		}
+		else
+		{
+			var webDevice = await CheerpX.WebDevice.create(configObj.webDevicePath ?? "");
+			webMount = {type:"dir", dev:webDevice, path:"/web"};
+		}
 		dataDevice = await CheerpX.DataDevice.create();
 		uploadDevice = await CheerpX.IDBDevice.create("uploads");
 		var mountPoints = [
 			// The root filesystem, as an Ext2 image
 			{type:"ext2", dev:overlayDevice, path:"/"},
-			// Access to files on the Web server, relative to the current page
-			{type:"dir", dev:webDevice, path:"/web"},
+			// Site files (see webMount above)
+			webMount,
 			// Access to read-only data coming from JavaScript
 			{type:"dir", dev:dataDevice, path:"/data"},
 			// IDBDevice for file uploads from VM to browser (readable from JS)

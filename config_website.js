@@ -1,6 +1,8 @@
 // The root filesystem location, set by the embedding site's build
 // (VITE_DISK_IMAGE_URL=... WEBVM_MODE=website npm run build)
 export const diskImageUrl = import.meta.env.VITE_DISK_IMAGE_URL;
+// Ext2 image (split for GitHubDevice) mounted at /web, set by the embedding site's build
+export const webImageUrl = import.meta.env.VITE_WEB_IMAGE_URL;
 // The root filesystem backend type
 export const diskImageType = 'bytes';
 // Print an introduction message about the technology
