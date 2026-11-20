@@ -1,5 +1,6 @@
-// The root filesystem location
-export const diskImageUrl = 'https://assets.volpa.to/alpine_mini-d360bf4dfeee.ext2';
+// The root filesystem location, set by the embedding site's build
+// (VITE_DISK_IMAGE_URL=... WEBVM_MODE=website npm run build)
+export const diskImageUrl = import.meta.env.VITE_DISK_IMAGE_URL;
 // The root filesystem backend type
 export const diskImageType = 'bytes';
 // Print an introduction message about the technology
