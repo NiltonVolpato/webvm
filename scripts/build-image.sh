@@ -1,17 +1,49 @@
 #!/bin/bash
 set -eu
 
-# Build and test a WebVM Docker image
-#
-# Usage: ./scripts/build-image.sh [dockerfile] [image-name] [output-dir]
-#   dockerfile: path to Dockerfile (default: dockerfiles/alpine_mini)
-#   image-name: name for the image (default: derived from dockerfile)
-#   output-dir: directory for output files (default: PROJECT_DIR/disk-images)
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-DOCKERFILE="${1:-dockerfiles/alpine_mini}"
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [-h|--help] [DOCKERFILE] [IMAGE_NAME] [OUTPUT_DIR]
+
+Build a WebVM disk image from a Dockerfile: builds it for linux/386, exports
+the filesystem to a .tar, converts that to an .ext2 image, and runs smoke
+tests against the built Docker image.
+
+Arguments (all optional, positional):
+  DOCKERFILE   Dockerfile to build.
+               Default: dockerfiles/alpine_mini
+  IMAGE_NAME   Name for the Docker image and output files; a trailing .ext2
+               is accepted and stripped for the .tar name.
+               Default: basename of DOCKERFILE
+  OUTPUT_DIR   Where to write IMAGE_NAME.tar and IMAGE_NAME.ext2 (created if
+               missing). Default: disk-images/ in the project root
+
+Relative paths are resolved against the current directory.
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") dockerfiles/debian_mini
+  $(basename "$0") dockerfiles/alpine_mini alpine_mini_new.ext2 disk-images
+
+Requires Docker. Exits non-zero if the build or any smoke test fails.
+EOF
+}
+
+case "${1:-}" in
+    -h|--help) usage; exit 0 ;;
+    -*) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+esac
+if [ $# -gt 3 ]; then
+    echo "Too many arguments" >&2; usage >&2; exit 2
+fi
+
+DOCKERFILE="${1:-$PROJECT_DIR/dockerfiles/alpine_mini}"
+if [ ! -f "$DOCKERFILE" ]; then
+    echo "Dockerfile not found: $DOCKERFILE" >&2; exit 2
+fi
 IMAGE_NAME="${2:-$(basename "$DOCKERFILE")}"
 OUTPUT_DIR="${3:-$PROJECT_DIR/disk-images}"
 
@@ -25,12 +57,16 @@ else
 fi
 
 CONTAINER_NAME="${IMAGE_NAME%.ext2}_build"
+
+# Resolve paths against the caller's cwd before cd'ing. OUTPUT_DIR must be
+# absolute: `docker run -v name:/path` treats a relative source as a named volume.
+mkdir -p "$OUTPUT_DIR"
+OUTPUT_DIR="$(readlink -f "$OUTPUT_DIR")"
+DOCKERFILE="$(readlink -f "$DOCKERFILE")"
 OUTPUT_TAR="$OUTPUT_DIR/$TAR_NAME"
 OUTPUT_EXT2="$OUTPUT_DIR/$EXT2_NAME"
 
 cd "$PROJECT_DIR"
-
-mkdir -p "$OUTPUT_DIR"
 
 echo "=== Building image: $IMAGE_NAME ==="
 echo "Dockerfile: $DOCKERFILE"
