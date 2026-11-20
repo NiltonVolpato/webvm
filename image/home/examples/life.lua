@@ -52,5 +52,8 @@ end
 while true do
     draw()
     step()
-    os.execute("sleep 0.1")
+    -- system() ignores SIGINT in the caller while the child runs, so Ctrl+C
+    -- only kills `sleep`. Detect that and exit instead of looping forever.
+    local _, how = os.execute("sleep 0.1")
+    if how == "signal" then break end
 end
