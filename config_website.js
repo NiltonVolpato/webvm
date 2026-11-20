@@ -1,5 +1,5 @@
 // The root filesystem location
-export const diskImageUrl = 'https://assets.volpa.to/alpine_mini.ext2';
+export const diskImageUrl = 'https://assets.volpa.to/alpine_mini-d360bf4dfeee.ext2';
 // The root filesystem backend type
 export const diskImageType = 'bytes';
 // Print an introduction message about the technology

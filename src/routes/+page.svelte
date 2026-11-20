@@ -10,6 +10,9 @@ function handleProcessCreated(processCount)
 		tryPlausible(`Process started: ${processCount}`);
 	}
 }
+// The block cache holds the visitor's writes on top of the disk image. Key it by
+// image name, so a new image (new name) never gets blocks written against an old one.
+const cacheId = `blocks_${configObj.diskImageUrl.split('/').pop()}`;
 </script>
 
-<WebVM configObj={configObj} processCallback={handleProcessCreated} cacheId="blocks_terminal" />
+<WebVM configObj={configObj} processCallback={handleProcessCreated} cacheId={cacheId} />
