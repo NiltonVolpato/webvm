@@ -13,6 +13,10 @@ export default defineConfig({
   build: {
     target: 'es2022',
   },
+  // Dev dependency pre-bundling uses its own target; cheerpx needs top-level await
+  optimizeDeps: {
+    esbuildOptions: { target: 'es2022' },
+  },
   plugins: [
     sveltekit(),
     viteStaticCopy({
